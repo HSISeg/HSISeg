@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import pickle
 import scipy
+import colorsys
 
 def mat_to_numpy(mat_file_path):
 	mat = scipy.io.loadmat(mat_file_path)
@@ -51,6 +52,12 @@ def save_image_as_pickle(image_path):
 		pickle.dump(M, fp, protocol=pickle.HIGHEST_PROTOCOL)
 	return
 
+def generate_colors(cluster_number):
+	HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+	RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+	for i in xrange(0,len(RGB_tuples)):
+		RGB_tuples[i] = [int(RGB_tuples[i][0]*256),int(RGB_tuples[i][1]*256),int(RGB_tuples[i][2]*256)]
+	return RGB_tuples
 
 def get_pickle_object_as_numpy(pickle_object_path):
 	with open(pickle_object_path,"rb") as fp:
@@ -63,13 +70,13 @@ def save_output(L,cluster_centres,output_path):
 		pickle.dump(M, fp, protocol=pickle.HIGHEST_PROTOCOL)
 	return	
 
-def save_image(L,output_path):
-	#cluster_color = cluster_color = [[255,255,0],[128,255,0],[0,128,255],[255,0,255],[255,0,0],[0,0,0]]
-	cluster_color = [[255,255,0],[128,255,0],[0,128,255],[255,0,255],[255,0,0],[0,0,0],[255,128,0],[0,255,128],[0,255,255],[127,0,255],[255,0,127],[128,128,128],[0,51,0],[102,0,0],[255,255,255],[204,229,255]]
+def save_image(L,output_path,colors):
+	if not colors:
+		colors = [[255,255,0],[128,255,0],[0,128,255],[255,0,255],[255,0,0],[0,0,0],[255,128,0],[0,255,128],[0,255,255],[127,0,255],[255,0,127],[128,128,128],[0,51,0],[102,0,0],[255,255,255],[204,229,255]] 
 	a = [[[] for y in xrange(0,len(L[0]))] for z in xrange(0,len(L))]
 	for x in xrange(0,len(L)):
 		for y in xrange(0,len(L[0])):
-			a[x][y] = cluster_color[L[x][y]]
+			a[x][y] = colors[L[x][y]]
 	a = np.array(a,dtype='uint8')
 	im = Image.fromarray(a)
 	im.save(output_path)

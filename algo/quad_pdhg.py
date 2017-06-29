@@ -152,6 +152,7 @@ def pdhg_quad(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,outerl
 	image_2d_normalized =  preprocessing.normalize(image_2d,norm='l2', axis=1)
 	W_sqrt = W
 	W.data **= 0.5
+	colors = ih.generate_colors(cluster_no)
 	while stop < iter_stop and count < innerloop*outerloop:
 		pid_element.percentage_done = 2 if int(count/outerloop)<2 else int(count/outerloop)
 		pid_element.status_text = 'Segmentation going on...'
@@ -181,7 +182,7 @@ def pdhg_quad(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,outerl
 		uhard = threshold_u(u.transpose(),maxconn)
 		endmem = calculate_centroid(uhard,cluster_no,endmem,image_2d)
 		L = assing_classes(uhard,m,n)
-		ih.save_image(L,output_path + "_" + str(outer_index) + ".jpeg")
+		ih.save_image(L,output_path + "_" + str(outer_index) + ".jpeg",colors)
 		stop = get_stop(uhard_old,uhard,r)
 		uhard_old = uhard
 	return error

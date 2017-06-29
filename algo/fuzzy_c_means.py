@@ -192,9 +192,11 @@ def fuzzy_c_means(data,beta,initial_centroids,m,terminating_mean_error,alpha_w,a
 	U = get_initial_u(data,cluster_number,initial_centroids)
 	error_list = []
 	L_new = assing_classes(U)
-	ih.save_image(L_new,output_path + "_" + str(0) + ".jpeg")
+	colors = ih.generate_colors(cluster_number)
+	ih.save_image(L_new,output_path + "_" + str(0) + ".jpeg",colors)
 	##### starting iterations ####
 	n = 1
+
 	while n <= max_iter:
 		pid_element.percentage_done = 2 if int(n-1/max_iter)<2 else int(n-1/max_iter)
 		pid_element.status_text = 'Segmentation going on...'
@@ -205,7 +207,7 @@ def fuzzy_c_means(data,beta,initial_centroids,m,terminating_mean_error,alpha_w,a
 		U = update_U(U,D,m)
 		L = L_new
 		L_new = assing_classes(U)
-		ih.save_image(L_new,output_path + "_" + str(n) + ".jpeg")
+		ih.save_image(L_new,output_path + "_" + str(n) + ".jpeg",colors)
 		mean_error = get_segmentation_error(L,L_new,data)
 		error_list.append(mean_error)
 
