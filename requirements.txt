@@ -1,0 +1,8 @@
+pip install Cython
+pip install numpy
+pip install Pillow
+pip install scipy==0.14.0
+sudo pip install GDAL
+pip install sklearn
+brew install gdal 
+pip install Django==1.8
