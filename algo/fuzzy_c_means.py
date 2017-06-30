@@ -159,12 +159,12 @@ def run_fuzzy_c_means(image,cluster_number,output_path,maxconn,params,pid_elemen
 		beta_algo = getattr(fuzzy_beta,beta_algo_name)
 		beta = beta_algo(image,beta_algo_params)
 	pid_element.status_text = 'Beta calculated/Retreived'
-	pid_element.percentage_done = '1'
+	pid_element.percentage_done = '0'
 	pid_element.save()
 	
 		
-	if params.get("centroid_pickle_file"):
-		initial_centroids = ih.get_pickle_object_as_numpy(params.get("centroid_pickle_file"))
+	if params.get("centroid_pickle_file_path"):
+		initial_centroids = ih.get_pickle_object_as_numpy(params.get("centroid_pickle_file_path"))
 	else:
 		if params.get("centroid_init") and params['centroid_init'].get('algo'):
 			algo_name = params['centroid_init'].get('algo')
@@ -174,7 +174,7 @@ def run_fuzzy_c_means(image,cluster_number,output_path,maxconn,params,pid_elemen
 		algo = getattr(centroid_init,algo_name)
 		initial_centroids = algo(image,cluster_number)
 	pid_element.status_text = 'Centroid calculated/Retreived'
-	pid_element.percentage_done = '2'
+	pid_element.percentage_done = '0'
 	pid_element.save()
 
 	algo_params = default_params.algo_details[hsi_seg_algo]['algo_params']
@@ -198,7 +198,7 @@ def fuzzy_c_means(data,beta,initial_centroids,m,terminating_mean_error,alpha_w,a
 	n = 1
 
 	while n <= max_iter:
-		pid_element.percentage_done = 2 if int(n-1/max_iter)<2 else int(n-1/max_iter)
+		pid_element.percentage_done = ((n-1)*100/max_iter)
 		pid_element.status_text = 'Segmentation going on...'
 		pid_element.save()
 		V = get_cluster_prototypes(U,data,m,cluster_number)

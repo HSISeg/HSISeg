@@ -111,11 +111,11 @@ def run_pdhg_quad(image,cluster_number,output_path,maxconn,params,pid_element):
 		from pdhg_weight import pdhg_sparse_weight
 		W = pdhg_sparse_weight(image,weight_params)
 	pid_element.status_text = 'Weight calculated/Retreived'
-	pid_element.percentage_done = '1'
+	pid_element.percentage_done = '0'
 	pid_element.save()
 
-	if params.get("centroid_pickle_file"):
-		endmem = ih.get_pickle_object_as_numpy(params.get("centroid_pickle_file"))
+	if params.get("centroid_pickle_file_path"):
+		endmem = ih.get_pickle_object_as_numpy(params.get("centroid_pickle_file_path"))
 	else:
 		if params.get("centroid_init") and params['centroid_init'].get('algo'):
 			algo_name = params['centroid_init'].get('algo')
@@ -126,7 +126,7 @@ def run_pdhg_quad(image,cluster_number,output_path,maxconn,params,pid_element):
 		endmem = algo(image,cluster_number)
 	endmem = endmem.transpose()
 	pid_element.status_text = 'Centroid calculated/Retreived'
-	pid_element.percentage_done = '2'
+	pid_element.percentage_done = '0'
 	pid_element.save()
 
 	algo_params = default_params.algo_details[hsi_seg_algo]['algo_params']
@@ -154,7 +154,7 @@ def pdhg_quad(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,outerl
 	W.data **= 0.5
 	colors = ih.generate_colors(cluster_no)
 	while stop < iter_stop and count < innerloop*outerloop:
-		pid_element.percentage_done = 2 if int(count/outerloop)<2 else int(count/outerloop)
+		pid_element.percentage_done = (count*100/(innerloop*outerloop))
 		pid_element.status_text = 'Segmentation going on...'
 		pid_element.save()
 		outer_index += 1

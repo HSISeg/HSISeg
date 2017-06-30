@@ -20,8 +20,8 @@ try:
 	if not weight_algo:
 		weight_algo = default_params.default_weight_algo
 	weight_algo_params = params.get('algo_params')
-	import pdhg_weight
-	weight_algo_func =  getattr(fuzzy_beta,weight_algo)
+	from algo import pdhg_weight
+	weight_algo_func =  getattr(pdhg_weight,weight_algo)
 	weight = weight_algo_func(image,weight_algo_params)
 	ih.save_to_pickle(weight,output_path+"/weight.pickle")
 	pid_element.is_done = True

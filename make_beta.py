@@ -20,7 +20,7 @@ try:
 	if not beta_algo:
 		beta_algo = default_params.default_beta_algo
 	beta_algo_params = params.get('algo_params')
-	import fuzzy_beta
+	from algo import fuzzy_beta
 	beta_algo_func =  getattr(fuzzy_beta,beta_algo)
 	beta = beta_algo_func(image,beta_algo_params)
 	ih.save_to_pickle(beta,output_path+"/beta.pickle")

@@ -1,0 +1,95 @@
+{
+	"variables": [],
+	"info": {
+		"name": "isro",
+		"_postman_id": "36c061cd-6eb5-8b96-8ac6-58296b1f4096",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "weight pdhd",
+			"request": {
+				"url": "http://localhost:8000/get-weight",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"image_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/data/hsi_pickle.pickle\",\"algo_params\":{\"max_points\":10,\"half_search_window\":10,\"half_patch_size\":1, \"gaussian_sigma\":3,\"euclidean_distance_weight\": 0},\"output_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output\"}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "centroid_init",
+			"request": {
+				"url": "http://localhost:8000/get-initial-centroid",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"image_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/data/hsi_pickle.pickle\",\"algo\":\"scipy_kmeans_centroids\",\"output_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output\",\"cluster_number\":6} "
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "linear pdhg",
+			"request": {
+				"url": "http://localhost:8000/run-algo",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"image_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/data/hsi_pickle.pickle\",\"algo\":\"linear_pdhg\",\"algo_params\":{\"sigma\":0.0008333333333333334,\"mu\": 0.00001,\"lamda\":1000000,\"tao\":10.0,\"theta\":1.0,\"iter_stop\":1.1,\"innerloop\": 2,\"outerloop\": 3},\"output_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output\",\"cluster_number\":6,\"weight_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/weight.pickle\",\"centroid_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/initial_centroid.pickle\",\"maxconn\":1}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "beta fuzzy",
+			"request": {
+				"url": "http://localhost:8000/get-beta",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"image_pickle_file_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output/data/hsi_pickle.pickle\",\"algo_params\":{\"max_points\":10,\"half_search_window\":10,\"half_patch_size\":1, \"gaussian_sigma\":3,\"euclidean_distance_weight\": 0 ,\"theta\":0.7},\"output_path\":\"/Users/jayeetadatta/workspace/hsiseg/ML_KGP/server_17chan_output\"}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "get task status",
+			"request": {
+				"url": "http://localhost:8000/get-task-status",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"task_id\":14}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "kill task",
+			"request": {
+				"url": "http://localhost:8000/kill-task",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"task_id\":14}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

@@ -20,7 +20,7 @@ try:
 	if not centroid_algo:
 		centroid_algo = default_params.default_centroid_init_algo
 	cluster_number = params.get('cluster_number')
-	import centroid_init
+	from algo import centroid_init
 	centroid_algo_func =  getattr(centroid_init,centroid_algo)
 	centroid = centroid_algo_func(image,cluster_number)
 	ih.save_to_pickle(centroid,output_path+"/initial_centroid.pickle")

@@ -53,7 +53,7 @@ def save_image_as_pickle(image_path):
 	return
 
 def generate_colors(cluster_number):
-	HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+	HSV_tuples = [(x*1.0/cluster_number, 0.5, 0.5) for x in range(cluster_number)]
 	RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
 	for i in xrange(0,len(RGB_tuples)):
 		RGB_tuples[i] = [int(RGB_tuples[i][0]*256),int(RGB_tuples[i][1]*256),int(RGB_tuples[i][2]*256)]
@@ -69,6 +69,11 @@ def save_output(L,cluster_centres,output_path):
 	with open(output_path, "wb") as fp:
 		pickle.dump(M, fp, protocol=pickle.HIGHEST_PROTOCOL)
 	return	
+
+def save_to_pickle(data,output_path):
+	with open(output_path, "wb") as fp:
+		pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
+	return		
 
 def save_image(L,output_path,colors):
 	if not colors:
