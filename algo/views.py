@@ -7,6 +7,7 @@ from django.template import RequestContext
 import algo_default_params as default_params
 import json,os,subprocess
 from algo.models import Results
+import psutil
 
 
 @csrf_exempt
@@ -132,18 +133,19 @@ def kill_task(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("task_id"): 
 			return HttpResponseBadRequest(json.dumps({'error':'task_id manadatory'}),content_type="application/json")
-		try:
-			tasks = Results.objects.filter(id = params['task_id'],is_done=False)
-			for task in tasks:
-				command = "kill -9 "+str(task.pid)
-				proc = subprocess.Popen(command,shell=True,stdout=file("1.txt", "ab"))
-				task.status_text = 'Killed'
-				task.is_done = True
-				task.save()
-			return HttpResponse(json.dumps({'success':True}),content_type="application/json")
-
-		except Exception as e:
-			return HttpResponseBadRequest(json.dumps({'success':False,'error':str(e)}),content_type="application/json")
+		tasks = Results.objects.filter(id = params['task_id'])
+		for task in tasks:
+			try:
+				parent = psutil.Process(task.pid)
+				for child in parent.children(recursive=True):
+				    child.kill()
+				parent.kill()
+			except Exception as e:
+				pass
+			task.status_text = 'Killed'
+			task.is_done = True
+			task.save()
+		return HttpResponse(json.dumps({'success':True}),content_type="application/json")
 	else:
 		raise Http404()
 
@@ -156,13 +158,14 @@ def get_task_status(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("task_id"): 
 			return HttpResponseBadRequest(json.dumps({'error':'task_id manadatory'}),content_type="application/json")
-		tasks = Results.objects.filter(id=params['task_id'])
-		result = []
-		for task in tasks:
+		try:
+			task = Results.objects.get(id=params['task_id'])
+			
 			data = {'task_id':task.id,'result_file_name':task.result_file_name,'error':task.error,'percentage_done':task.percentage_done,
 					'status_text':task.status_text,'is_done':task.is_done,'pid':task.pid}
-			result.append(data)
-		return HttpResponse(json.dumps(result[0]),content_type="application/json")
+			return HttpResponse(json.dumps(data),content_type="application/json")
+		except Results.DoesNotExist as e:
+			return HttpResponseBadRequest(json.dumps({'error':'Invalid task_id'}),content_type="application/json")
 	else:
 		raise Http404()
 

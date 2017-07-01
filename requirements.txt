@@ -6,3 +6,4 @@ sudo pip install GDAL
 pip install sklearn
 brew install gdal 
 pip install Django==1.8
+psutil==5.2.2
