@@ -8,7 +8,7 @@ default_weight_algo = 'pdhg_sparse_weight'
 
 default_centroid_init_algo = 'scklearn_kmeans_centroids'
 
-centroid_init_algo = {'scklearn_kmeans_centroids':{},'scipy_kmeans_centroids':{}}
+centroid_init_algo = {'scklearn_kmeans_centroids':{},'scipy_kmeans_centroids':{},'random_centroids':{}}
 
 weight_algo = {'pdhg_sparse_weight':
 							{'algo_params':
