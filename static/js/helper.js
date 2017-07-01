@@ -19,6 +19,13 @@ function kill_task_callback(data,status) {
 
 function append_to_log(append_text) {
 	var $api_log = $('#api_log');
+	$api_log.val($api_log.val() + append_text + "\n********************\n")
+	$api_log.scrollTop($api_log[0].scrollHeight);
+	return
+}
+
+function append_to_log(append_text) {
+	var $api_log = $('#api_log');
 	$api_log.append(append_text + "\n********************\n");
 	$api_log.scrollTop($api_log[0].scrollHeight);
 	return

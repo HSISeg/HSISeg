@@ -4,13 +4,6 @@ $('#run_algorithm').on('click', function (e) {
 })
 
 
-function append_to_log(append_text) {
-	var $api_log = $('#api_log');
-	$api_log.append(append_text + "\n********************\n");
-	$api_log.scrollTop($api_log[0].scrollHeight);
-	return
-}
-
 function construct_api_request_object() {
 
 	var request_data = new Object();
