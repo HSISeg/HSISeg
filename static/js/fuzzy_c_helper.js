@@ -7,6 +7,7 @@ $('#run_algorithm').on('click', function (e) {
 function construct_api_request_object() {
 
 	var request_data = new Object();
+	var x = 1
 	request_data.image_pickle_file_path = $("#image_pickle_file_path").val();
 	request_data.output_path = $("#output_path").val();
 	request_data.algo = "fuzzy_c_means";
