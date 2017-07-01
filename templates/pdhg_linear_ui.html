@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Hsi Segment Demo</title>
+
+    <!-- Bootstrap -->
+     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+     <!-- <link href="/static/css/bootstrap-spinner.css" rel="stylesheet"> -->
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+  </head>
+  <body onload="init()">
+    
+    <div class="container">
+      <div class="page-header">
+  	    <h2>PDHG Linear</h2>
+      </div>
+    </div>
+
+    <div class="container">
+      <h3>Pickle Input Files All Mandatory</h3>
+      <div class="row">
+        <div class="col-sm-8">
+          <div class="form-group" >
+            <label for="image_pickle_file_path">HSI Pickle File Absolute eg : /home/sourav/hsi/sundarban_image_numpy.pickle</label>
+            <input type="text" class="form-control" id="image_pickle_file_path">
+
+            <label for="weight_pickle_file_path">Weight Pickle File Absolute eg : /home/sourav/hsi/sundarban_weight_numpy.pickle</label>
+            <input type="text" class="form-control" id="weight_pickle_file_path">
+
+            <label for="centroid_pickle_file_path">HSI Initial Centroid File Absolute eg : /home/sourav/hsi/sundarban_centroid_numpy.pickle</label>
+            <input type="text" class="form-control" id="centroid_pickle_file_path">
+            <label for="output_path">HSI Initial Centroid Output Folder Absolute eg : /home/sourav/hsi</label>
+            <input type="text" class="form-control" id="output_path">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+<div class="container">
+  <h3>Algorithm Parameters</h3>
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-group">
+        <label for="maxconn">Max Core Usage : </label>
+        <input type="number" class="form-control" id="maxconn" min ="1" value = "1">
+      </div>
+    </div>
+    <div class="col-sm-3" style=>
+      <div class="form-group">
+        <label for="sigma">sigma:</label>
+        <input type="number" class="form-control" id="sigma" min = "0.00000001" value = "0.00083333333333333" step = "0.00000001">
+      </div>
+    </div>
+    <div class="col-sm-3" style=>
+      <div class="form-group">
+        <label for="theta">theta : </label>
+        <input type="number" class="form-control" id="theta" min = "0.0001" value = "1" step = "0.001">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-group">
+        <label for="iter_stop">iter_stop : </label>
+        <input type="number" class="form-control" id="iter_stop" min = "1.0" value = "1.1" step = "0.1">
+      </div>
+    </div>
+    <div class="col-sm-3" style=>
+      <div class="form-group">
+        <label for="mu">mu : </label>
+        <input type="number" class="form-control" id="mu" min = "0.00000001" value = "0.00001" step = "0.00000001">
+      </div>
+    </div>
+    <div class="col-sm-3" style=>
+      <div class="form-group">
+        <label for="tao">tao : </label>
+        <input type="number" class="form-control" id="tao" min = "0.01" value = "10" step = "0.1">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-group">
+        <label for="innerloop">innerloop : </label>
+        <input type="number" class="form-control" id="innerloop" min = "1" value = "1" step = "1">
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <div class="form-group">
+        <label for="outerloop">outerloop : </label>
+        <input type="number" class="form-control" id="outerloop" min = "1" value = "3" step = "1">
+      </div>
+    </div>
+    <div class="col-sm-3" style=>
+      <div class="form-group">
+        <label for="lamda">lambda : </label>
+        <input type="number" class="form-control" id="lamda" min = "100" value = "1000000" step = "10">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-group">
+        <label for="cluster_number">cluster_number : </label>
+        <input type="number" class="form-control" id="cluster_number" min = "1" value = "1" step = "1">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <div class="row" style = "margin-top: 10px;margin-bottom: 10px">
+        <div class="col-sm-2">
+          <button type="button" class="btn btn-lg btn-success" id = "run_algorithm">Run Algorithm</button>
+        </div>
+        <div class="col-sm-2">
+          <button type="button" class="btn btn-lg btn-default" id = "clear_logs">Clear Logs</button>
+        </div>
+        <div class="col-sm-2">
+          <button type="button" class="btn btn-lg btn-danger" id = "kill_task">Kill Task</button>
+        </div>
+      </div>
+
+      <div class="row" style = "margin-top: 10px;margin-bottom: 10px">
+        <div class="col-sm-3">
+          <div class="form-group">
+            <label for="task_id">Task Id : </label>
+            <p class="form-control-static" id="task_id">0000</p>
+          </div>
+        </div>
+        <div class="col-sm-3" style=>
+          <div class="form-group">
+            <label for="pid">PID : </label>
+            <p class="form-control-static" id="pid">0000</p>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="row">
+        <div class="col-sm-9">
+          <div class="progress">
+            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 5%" id="progress_bar"><span class="sr-only">20% Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class = "row" >
+        <div class="col-sm-9">
+          <div class="form-group">
+            <label for="api_log" >Backend Log : </label>
+            <textarea class="form-control" rows="10" id="api_log" readonly="readonly"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/static/js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/pdhg_linear_helper.js"></script>
+<!--     <script src="/static/js/jquery.spinner.js"></script>
+        <script>
+$("#spinner")
+  .spinner('delay', 200) //delay in ms
+  .spinner('changed', function(e, newVal, oldVal) {
+    // trigger lazed, depend on delay option.
+  })
+  .spinner('changing', function(e, newVal, oldVal) {
+    // trigger immediately
+  });
+</script> -->
+    
+
+
+  </body>
+</html>

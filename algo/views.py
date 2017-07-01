@@ -28,6 +28,30 @@ def home(request):
 	return render_to_response('home.html', {}, content_type='text/html')
 
 @csrf_exempt
+def pdhg_linear_ui(request):
+	return render_to_response('pdhg_linear_ui.html', {}, content_type='text/html')
+
+@csrf_exempt
+def initialization(request):
+	return render_to_response('initialization.html', {}, content_type='text/html')
+
+@csrf_exempt
+def weight_calculation(request):
+	return render_to_response('weight_calculation.html', {}, content_type='text/html')
+
+@csrf_exempt
+def quad_pdhg_ui(request):
+	return render_to_response('quad_pdhg_ui.html', {}, content_type='text/html')
+
+@csrf_exempt
+def beta_calculation(request):
+	return render_to_response('beta_calculation.html', {}, content_type='text/html')
+
+@csrf_exempt
+def fuzzy_c_ui(request):
+	return render_to_response('fuzzy_c_ui.html', {}, content_type='text/html')
+
+@csrf_exempt
 def run_algo(request):
 	if request.method == 'POST':
 		try:
@@ -36,12 +60,12 @@ def run_algo(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("image_pickle_file_path") or not params.get("algo") or not params.get('cluster_number') or not params.get('output_path'): 
 			return HttpResponseBadRequest(json.dumps({'error':'output_path ,image_pickle_file_path,cluster_number and algo manadatory,only .pickle file accepted, valid algo are '+str(default_params.algo_details.keys())}),content_type="application/json")
-		pid_element = Results.objects.create(task_id=None)
+		pid_element = Results.objects.create(pid=None)
 		params['id'] = pid_element.id
 		params = json.dumps(params)
 		command = "python segment_hsi.py '"+str(params)+"' &"
 		proc = subprocess.Popen(command,shell=True)
-		return HttpResponse(json.dumps({'success':True,'pid':pid_element.id}),content_type="application/json")
+		return HttpResponse(json.dumps({'success':True,'task_id':pid_element.id}),content_type="application/json")
 	else:
 		raise Http404()
 
@@ -54,12 +78,12 @@ def get_beta(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("output_path") or not params.get("image_pickle_file_path"): 
 			return HttpResponseBadRequest(json.dumps({'error':'output_path and image_pickle_file_path manadatory'}),content_type="application/json")
-		pid_element = Results.objects.create(task_id=None)
+		pid_element = Results.objects.create(pid=None)
 		params['id'] = pid_element.id
 		params = json.dumps(params)
 		command = "python make_beta.py '"+str(params)+"' &"
 		proc = subprocess.Popen(command,shell=True)
-		return HttpResponse(json.dumps({'success':True,'pid':pid_element.id}),content_type="application/json")
+		return HttpResponse(json.dumps({'success':True,'task_id':pid_element.id}),content_type="application/json")
 	else:
 		raise Http404()
 
@@ -72,12 +96,12 @@ def get_weight(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("output_path") or not params.get("image_pickle_file_path"): 
 			return HttpResponseBadRequest(json.dumps({'error':'output_path and image_pickle_file_path manadatory'}),content_type="application/json")
-		pid_element = Results.objects.create(task_id=None)
+		pid_element = Results.objects.create(pid=None)
 		params['id'] = pid_element.id
 		params = json.dumps(params)
 		command = "python make_weight.py '"+str(params)+"' &"
 		proc = subprocess.Popen(command,shell=True)
-		return HttpResponse(json.dumps({'success':True,'pid':pid_element.id}),content_type="application/json")
+		return HttpResponse(json.dumps({'success':True,'task_id':pid_element.id}),content_type="application/json")
 	else:
 		raise Http404()
 
@@ -90,12 +114,12 @@ def get_initial_centroid(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get("output_path") or not params.get("image_pickle_file_path") or not params.get('cluster_number'): 
 			return HttpResponseBadRequest(json.dumps({'error':'output_path,cluster_number and image_pickle_file_path manadatory'}),content_type="application/json")
-		pid_element = Results.objects.create(task_id=None)
+		pid_element = Results.objects.create(pid=None)
 		params['id'] = pid_element.id
 		params = json.dumps(params)
 		command = "python make_centroid.py '"+str(params)+"' &"
 		proc = subprocess.Popen(command,shell=True)
-		return HttpResponse(json.dumps({'success':True,'pid':pid_element.id}),content_type="application/json")
+		return HttpResponse(json.dumps({'success':True,'task_id':pid_element.id}),content_type="application/json")
 	else:
 		raise Http404()
 
@@ -111,7 +135,7 @@ def kill_task(request):
 		try:
 			tasks = Results.objects.filter(id = params['task_id'],is_done=False)
 			for task in tasks:
-				command = "kill -9 "+str(task.task_id)
+				command = "kill -9 "+str(task.pid)
 				proc = subprocess.Popen(command,shell=True,stdout=file("1.txt", "ab"))
 				task.status_text = 'Killed'
 				task.is_done = True
@@ -135,10 +159,10 @@ def get_task_status(request):
 		tasks = Results.objects.filter(id=params['task_id'])
 		result = []
 		for task in tasks:
-			data = {'task_id':task.task_id,'result_file_name':task.result_file_name,'error':task.error,'percentage_done':task.percentage_done,
-					'status_text':task.status_text,'is_done':task.is_done}
+			data = {'task_id':task.id,'result_file_name':task.result_file_name,'error':task.error,'percentage_done':task.percentage_done,
+					'status_text':task.status_text,'is_done':task.is_done,'pid':task.pid}
 			result.append(data)
-		return HttpResponse(json.dumps(result),content_type="application/json")
+		return HttpResponse(json.dumps(result[0]),content_type="application/json")
 	else:
 		raise Http404()
 

@@ -1,14 +1,15 @@
-import json,os,sys,traceback
+import json,os,sys,traceback,django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "HSISeg.settings")
+django.setup()
 from algo.models import Results
 params = json.loads(sys.argv[1])
 pid = os.getpid()
 try:
 	pid_element = Results.objects.get(id=params.get('id'))
-	pid_element.task_id = pid
+	pid_element.pid = pid
 	pid_element.save()
 except Results.DoesNotExist as e:
-	pid_element = Results.objects.create(task_id=pid)
+	pid_element = Results.objects.create(pid=pid)
 try:
 	from algo import image_helper as ih
 	from algo import algo_default_params as default_params

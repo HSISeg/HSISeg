@@ -1,2 +1,5 @@
 *.sqlite3
 *HSI.db
+.DS_Store
+algo/*.pyc
+algo/models.pyc

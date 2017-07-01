@@ -10,5 +10,11 @@ urlpatterns = [
     url(r'^kill-task$', views.kill_task, name='kill_task'),
     url(r'^get-task-status$', views.get_task_status, name='get_task_status'),
     url(r'^get-initial-centroid$', views.get_initial_centroid, name='get_initial_centroid'),
+    url(r'^pdhg_linear_ui$', views.pdhg_linear_ui, name='pdhg_linear_ui'),
+    url(r'^initialization$', views.initialization, name='initialization'),
+    url(r'^weight_calculation$', views.weight_calculation, name='weight_calculation'),
+    url(r'^quad_pdhg_ui$', views.quad_pdhg_ui, name='quad_pdhg_ui'),
+    url(r'^beta_calculation$', views.beta_calculation, name='beta_calculation'),
+    url(r'^fuzzy_c_ui$', views.fuzzy_c_ui, name='fuzzy_c_ui'),
     url(r'', views.home, name='home'),
 ]
