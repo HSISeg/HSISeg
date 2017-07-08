@@ -20,7 +20,7 @@ algo_details = {'linear_pdhg':{'algo_params':{'sigma':0.0008333333333333334,'mu'
 									'centroid_init':{'default_algo':'scipy_kmeans_centroids','options':centroid_init_algo}}
 								},
 
-				'quad_pdhg':{'algo_params':{'sigma':0.0008333333333333334,'mu': 1e-5,'lamda':1e6,'tao':10.0,'theta':1.0,'iter_stop':1.1,'innerloop': 5,'outerloop': 50},
+				'quad_pdhg':{'algo_params':{'sigma':0.0008333333333333334,'mu': 1e-5,'lamda':1e6,'tao':10.0,'theta':1.0,'iter_stop':1.1,'innerloop': 10,'outerloop': 10},
 							'preprocessing':{
 								'weight':{ 'default_algo':'pdhg_sparse_weight','options':weight_algo},
 								'centroid_init':{'default_algo':'scipy_kmeans_centroids','options':centroid_init_algo}}
