@@ -6,9 +6,27 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 import algo_default_params as default_params
 import json,os,subprocess
+from algo.image_helper import get_data_from_image,save_to_pickle
 from algo.models import Results
 import psutil
 
+@csrf_exempt
+def image_to_pickle(request):
+	if request.method == 'POST':
+		try:
+			params = json.loads(request.body)
+		except:
+			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
+		if not params.get('image_path') or not params.get('output_path'):
+			return HttpResponseBadRequest(json.dumps({'error':'image_path and output_path required'}),content_type="application/json")
+		try:
+			data = get_data_from_image(params.get('image_path'))
+			save_to_pickle(data,str(params.get('output_path'))+"/data.pickle")
+			return HttpResponse(json.dumps({'success':True}),content_type="application/json")
+		except Exception as e:
+			return HttpResponseBadRequest(json.dumps({'error':str(e)}),content_type="application/json")
+	else:
+		raise Http404()
 
 @csrf_exempt
 def get_algo_params(request):

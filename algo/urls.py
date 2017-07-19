@@ -16,5 +16,6 @@ urlpatterns = [
     url(r'^quad_pdhg_ui$', views.quad_pdhg_ui, name='quad_pdhg_ui'),
     url(r'^beta_calculation$', views.beta_calculation, name='beta_calculation'),
     url(r'^fuzzy_c_ui$', views.fuzzy_c_ui, name='fuzzy_c_ui'),
+    url(r'^image-to-pickle$', views.image_to_pickle, name='image-to-pickle'),
     url(r'', views.home, name='home'),
 ]
