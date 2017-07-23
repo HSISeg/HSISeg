@@ -5,9 +5,27 @@ from sklearn import preprocessing
 from numpy import linalg as LA
 from algo.models import Results
 import image_helper as ih
-import pickle,importlib
+import pickle,importlib,math
 from multiprocessing import Pool
 import algo_default_params as default_params
+
+def get_initial_u(data, V):
+	row_size = data.shape[0]
+	col_size = data.shape[1]
+	channel = data.shape[2]
+	cluster_number = V.shape[0]
+	U = np.random.rand(row_size,col_size,cluster_number)
+	for i in xrange(0,row_size):
+		for j in xrange(0,col_size):
+			z = (((np.matlib.repmat(data[i][j],cluster_number,1) - V)**2).sum(axis=1)) ** 0.5
+			z = z/np.sum(z)
+			z_exp = [math.exp(-k) for k in z]  
+			sum_z_exp = sum(z_exp)  
+			softmax = [round(k / sum_z_exp, 3) for k in z_exp]
+			U[i][j] = np.array(softmax)
+	r = row_size*col_size
+	U = np.reshape(U, (r,cluster_number),order='F')
+	return U
 
 def nonlocal_grad(W_sqrt, u):
 	r = u.shape[0]
@@ -176,6 +194,13 @@ def pdhg_linear(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,oute
 	W.data **= 0.5
 	W_sqrt = W
 	colors = ih.generate_colors(cluster_no)
+
+	uhard_int = get_initial_u(image,endmem.transpose())
+	L = assing_classes(uhard_int,m,n)
+	ih.save_image(L,output_path + "_0.jpeg",colors)
+	ih.save_output(L,endmem.transpose(),output_path + "_0.pickle")
+
+
 	while stop < iter_stop and count < innerloop*outerloop:
 		pid_element.percentage_done = (count*100/(innerloop*outerloop))
 		pid_element.status_text = 'Segmentation going on...'
@@ -206,6 +231,7 @@ def pdhg_linear(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,oute
 		endmem = calculate_centroid(uhard,cluster_no,endmem,image_2d)
 		L = assing_classes(uhard,m,n)
 		ih.save_image(L,output_path + "_" + str(outer_index) + ".jpeg",colors)
+		ih.save_output(L,endmem.transpose(),output_path + "_" + str(outer_index) + ".pickle")
 		stop = get_stop(uhard_old,uhard,r)
 		uhard_old = uhard
 	return error

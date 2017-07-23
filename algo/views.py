@@ -11,18 +11,18 @@ from algo.models import Results
 import psutil
 
 @csrf_exempt
-def image_to_pickle(request):
+def get_image_to_pickle(request):
 	if request.method == 'POST':
 		try:
 			params = json.loads(request.body)
 		except:
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
-		if not params.get('image_path') or not params.get('output_path'):
-			return HttpResponseBadRequest(json.dumps({'error':'image_path and output_path required'}),content_type="application/json")
+		if not params.get('image_file_path') or not params.get('output_path'):
+			return HttpResponseBadRequest(json.dumps({'error':'image_file_path and output_path required'}),content_type="application/json")
 		try:
-			data = get_data_from_image(params.get('image_path'))
+			data = get_data_from_image(params.get('image_file_path'))
 			save_to_pickle(data,str(params.get('output_path'))+"/data.pickle")
-			return HttpResponse(json.dumps({'success':True}),content_type="application/json")
+			return HttpResponse(json.dumps({'success':True,'output':str(params.get('output_path'))+"/data.pickle"}),content_type="application/json")
 		except Exception as e:
 			return HttpResponseBadRequest(json.dumps({'error':str(e)}),content_type="application/json")
 	else:
@@ -53,6 +53,10 @@ def pdhg_linear_ui(request):
 @csrf_exempt
 def initialization(request):
 	return render_to_response('initialization.html', {}, content_type='text/html')
+
+@csrf_exempt
+def image_to_pickle(request):
+	return render_to_response('image_to_pickle.html', {}, content_type='text/html')
 
 @csrf_exempt
 def weight_calculation(request):
