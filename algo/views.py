@@ -6,7 +6,6 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 import algo_default_params as default_params
 import json,os,subprocess
-from algo.image_helper import get_data_from_image,save_to_pickle
 from algo.models import Results
 import psutil
 
@@ -19,12 +18,12 @@ def get_image_to_pickle(request):
 			return HttpResponseBadRequest(json.dumps({'error':'Json required'}),content_type="application/json")
 		if not params.get('image_file_path') or not params.get('output_path'):
 			return HttpResponseBadRequest(json.dumps({'error':'image_file_path and output_path required'}),content_type="application/json")
-		try:
-			data = get_data_from_image(params.get('image_file_path'))
-			save_to_pickle(data,str(params.get('output_path'))+"/data.pickle")
-			return HttpResponse(json.dumps({'success':True,'output':str(params.get('output_path'))+"/data.pickle"}),content_type="application/json")
-		except Exception as e:
-			return HttpResponseBadRequest(json.dumps({'error':str(e)}),content_type="application/json")
+		pid_element = Results.objects.create(pid=None)
+		params['id'] = pid_element.id
+		params = json.dumps(params)
+		command = "python make_image_to_pickle.py '"+str(params)+"' &"
+		proc = subprocess.Popen(command,shell=True)
+		return HttpResponse(json.dumps({'success':True,'task_id':pid_element.id}),content_type="application/json")
 	else:
 		raise Http404()
 
