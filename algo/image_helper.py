@@ -27,18 +27,20 @@ def create_test_image(image_path,row,col):
 	return
 
 def get_data_from_image(image_path):
-	from osgeo import gdal
+# 	from osgeo import gdal
+	from skimage import io
 	if image_path.split(".")[1] == "tif":
-		dataset = gdal.Open(image_path,gdal.GA_ReadOnly)
-		col = dataset.RasterXSize
-		row = dataset.RasterYSize
-		a = [[[]for y in xrange(col)] for z in xrange(row)]
-		for i in xrange(1,dataset.RasterCount + 1):
-			band = dataset.GetRasterBand(i).ReadAsArray()
-			for m in xrange(0,row):
-				for n in xrange(0,col):
-					a[m][n].append(band[m][n])
-		M = np.array(a,dtype='uint16')
+		M = io.imread(image_path)
+# 		dataset = gdal.Open(image_path,gdal.GA_ReadOnly)
+# 		col = dataset.RasterXSize
+# 		row = dataset.RasterYSize
+# 		a = [[[]for y in xrange(col)] for z in xrange(row)]
+# 		for i in xrange(1,dataset.RasterCount + 1):
+# 			band = dataset.GetRasterBand(i).ReadAsArray()
+# 			for m in xrange(0,row):
+# 				for n in xrange(0,col):
+# 					a[m][n].append(band[m][n])
+# 		M = np.array(a,dtype='uint16')
 	else:
 		M = np.asarray(Image.open(image_path))
 	return M
