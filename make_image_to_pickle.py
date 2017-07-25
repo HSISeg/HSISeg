@@ -2,7 +2,10 @@ import json,os,sys,traceback,django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "HSISeg.settings")
 django.setup()
 from algo.models import Results
-params = json.loads(sys.argv[1])
+try:
+	params = json.loads(sys.argv[1])
+except:
+	params = {'image_file_path':sys.argv[1],'output_path':sys.argv[2]}
 pid = os.getpid()
 try:
 	pid_element = Results.objects.get(id=params.get('id'))
