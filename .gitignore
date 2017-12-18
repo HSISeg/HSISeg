@@ -4,3 +4,6 @@
 algo/*.pyc
 algo/models.pyc
 *.pyc
+**/*.pickle
+**/*.jpg
+**/output*
