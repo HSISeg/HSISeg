@@ -11,7 +11,9 @@ class MyClassifier(Chain):
     def __call__(self, x, t, loss_func):
         self.clear()
         h = self.calculate(x)
+        # print("h",h)
         self.loss = loss_func(h, t)
+        # print("loss_func",loss_func,"t",t,"h",h,"self.loss",self.loss)
         chainer.reporter.report({'loss': self.loss}, self)
         return self.loss
 
@@ -23,6 +25,7 @@ class MyClassifier(Chain):
 
     def error(self, x, t):
         xp = cuda.get_array_module(x, False)
+        # print(x.shape)
         size = len(t)
         with chainer.no_backprop_mode():
             with chainer.using_config("train", False):
@@ -32,6 +35,7 @@ class MyClassifier(Chain):
         if isinstance(t, chainer.Variable):
             t = t.data
         result = (h != t).sum() / size
+        # print("result",np.unique(h))
         chainer.reporter.report({'error': result}, self)
         return cuda.to_cpu(result) if xp != np else result
 
@@ -39,18 +43,21 @@ class MyClassifier(Chain):
 class LinearClassifier(MyClassifier, Chain):
     def __init__(self, prior, dim):
         super(LinearClassifier, self).__init__(
-            l=L.Linear(dim, 1)
+            l = L.Linear(dim, 2),
+            l2 = L.Linear(2,1)
         )
         self.prior = prior
 
     def calculate(self, x):
         h = self.l(x)
+        h = self.l2(h)
+        print("model params", self.l.W,self.l.b)
         return h
 
 
 class ThreeLayerPerceptron(MyClassifier, Chain):
     def __init__(self, prior, dim):
-        super(ThreeLayerPerceptron, self).__init__(l1=L.Linear(dim, 100),
+        super(ThreeLayerPerceptron, self).__init__(l1=L.Linear(None, 100),
                                                    l2=L.Linear(100, 1))
         self.af = F.relu
         self.prior = prior
@@ -154,4 +161,171 @@ class CNN(MyClassifier, Chain):
         h = self.fc2(h)
         h = self.af(h)
         h = self.fc3(h)
+        return h
+
+
+class BassNet(MyClassifier, Chain):
+    def __init__(self, prior, channels):
+        self.block1_nfilters = channels
+        self.block1_patch_size = 1
+        self.af_block1 = F.relu
+
+        self.image_length = 3
+        self.image_width = 3
+        self.block2_nfilters_1 = 20
+        self.block2_patch_size_1 = 3
+        self.af_block2_1 = F.relu
+
+        self.block2_nfilters_2 = 20
+        self.block2_patch_size_2 = 3
+        self.af_block2_2 = F.relu
+
+        self.block2_nfilters_3 = 10
+        self.block2_patch_size_3 = 3
+        self.af_block2_3 = F.relu
+
+        self.block2_nfilters_4 = 5
+        self.block2_patch_size_4 = 5
+        self.af_block2_4 = F.relu
+
+        self.af_block3_1 = F.relu
+        self.af_block3_2 = F.dropout
+
+        self.nbands = 10
+        self.prior = prior
+        self.input_channels = channels
+        self.band_size = self.block1_nfilters/self.nbands
+        super(BassNet, self).__init__(
+            l1 = L.Convolution2D(channels,self.block1_nfilters,self.block1_patch_size),
+            l2 = L.Convolution2D(self.image_length,self.block2_nfilters_1,(self.image_width,self.block2_patch_size_1)),
+            l3 = L.Convolution2D(self.block2_nfilters_1,self.block2_nfilters_2,(1,self.block2_patch_size_2)),
+            l4 = L.Convolution2D(self.block2_nfilters_2,self.block2_nfilters_3,(1,self.block2_patch_size_3)),
+            l5 = L.Convolution2D(self.block2_nfilters_3,self.block2_nfilters_4,(1,self.block2_patch_size_4)),
+            l6=L.Linear(None, 100),
+            l7=L.Linear(100, 1)
+        )
+
+
+    def calculate(self, x):
+
+        h = self.l1(x)
+        h = self.af_block1(h)
+        h1, h2, h3, h4, h5, h6, h7, h8, h9, h10 = F.split_axis(h,self.nbands,axis=1)
+        h1 = F.swapaxes(h1, axis1=1, axis2=3)
+        h1 = F.flip(h1, 3)
+        h2 = F.swapaxes(h2, axis1=1, axis2=3)
+        h2 = F.flip(h2, 3)
+        h3 = F.swapaxes(h3, axis1=1, axis2=3)
+        h3 = F.flip(h3, 3)
+        h4 = F.swapaxes(h4, axis1=1, axis2=3)
+        h4 = F.flip(h4, 3)
+        h5 = F.swapaxes(h5, axis1=1, axis2=3)
+        h5 = F.flip(h5, 3)
+        h6 = F.swapaxes(h6, axis1=1, axis2=3)
+        h6 = F.flip(h6, 3)
+        h7 = F.swapaxes(h7, axis1=1, axis2=3)
+        h7 = F.flip(h7, 3)
+        h8 = F.swapaxes(h8, axis1=1, axis2=3)
+        h8 = F.flip(h8, 3)
+        h9 = F.swapaxes(h9, axis1=1, axis2=3)
+        h9 = F.flip(h9, 3)
+        h10 = F.swapaxes(h10, axis1=1, axis2=3)
+        h10 = F.flip(h10, 3)
+        h1 = self.l2(h1)
+        h2 = self.l2(h2)
+        h3 = self.l2(h3)
+        h4 = self.l2(h4)
+        h5 = self.l2(h5)
+        h6 = self.l2(h6)
+        h7 = self.l2(h7)
+        h8 = self.l2(h8)
+        h9 = self.l2(h9)
+        h10 = self.l2(h10)
+        h1 = self.af_block2_1(h1)
+        h2 = self.af_block2_1(h2)
+        h3 = self.af_block2_1(h3)
+        h4 = self.af_block2_1(h4)
+        h5 = self.af_block2_1(h5)
+        h6 = self.af_block2_1(h6)
+        h7 = self.af_block2_1(h7)
+        h8 = self.af_block2_1(h8)
+        h9 = self.af_block2_1(h9)
+        h10 = self.af_block2_1(h10)
+        h1 = self.l3(h1)
+        h2 = self.l3(h2)
+        h3 = self.l3(h3)
+        h4 = self.l3(h4)
+        h5 = self.l3(h5)
+        h6 = self.l3(h6)
+        h7 = self.l3(h7)
+        h8 = self.l3(h8)
+        h9 = self.l3(h9)
+        h10 = self.l3(h10)
+        h1 = self.af_block2_2(h1)
+        h2 = self.af_block2_2(h2)
+        h3 = self.af_block2_2(h3)
+        h4 = self.af_block2_2(h4)
+        h5 = self.af_block2_2(h5)
+        h6 = self.af_block2_2(h6)
+        h7 = self.af_block2_2(h7)
+        h8 = self.af_block2_2(h8)
+        h9 = self.af_block2_2(h9)
+        h10 = self.af_block2_2(h10)
+        h1 = self.l4(h1)
+        h2 = self.l4(h2)
+        h3 = self.l4(h3)
+        h4 = self.l4(h4)
+        h5 = self.l4(h5)
+        h6 = self.l4(h6)
+        h7 = self.l4(h7)
+        h8 = self.l4(h8)
+        h9 = self.l4(h9)
+        h10 = self.l4(h10)
+        h1 = self.af_block2_3(h1)
+        h2 = self.af_block2_3(h2)
+        h3 = self.af_block2_3(h3)
+        h4 = self.af_block2_3(h4)
+        h5 = self.af_block2_3(h5)
+        h6 = self.af_block2_3(h6)
+        h7 = self.af_block2_3(h7)
+        h8 = self.af_block2_3(h8)
+        h9 = self.af_block2_3(h9)
+        h10 = self.af_block2_3(h10)
+        h1 = self.l5(h1)
+        h2 = self.l5(h2)
+        h3 = self.l5(h3)
+        h4 = self.l5(h4)
+        h5 = self.l5(h5)
+        h6 = self.l5(h6)
+        h7 = self.l5(h7)
+        h8 = self.l5(h8)
+        h9 = self.l5(h9)
+        h10 = self.l5(h10)
+        h1 = self.af_block2_4(h1)
+        h2 = self.af_block2_4(h2)
+        h3 = self.af_block2_4(h3)
+        h4 = self.af_block2_4(h4)
+        h5 = self.af_block2_4(h5)
+        h6 = self.af_block2_4(h6)
+        h7 = self.af_block2_4(h7)
+        h8 = self.af_block2_4(h8)
+        h9 = self.af_block2_4(h9)
+        h10 = self.af_block2_4(h10)
+        h1 = F.reshape(h1, (h1.shape[0], h1.shape[1] * h1.shape[3], h1.shape[2]))
+        h2 = F.reshape(h2, (h2.shape[0], h2.shape[1] * h2.shape[3], h2.shape[2]))
+        h3 = F.reshape(h3, (h3.shape[0], h3.shape[1] * h3.shape[3], h3.shape[2]))
+        h4 = F.reshape(h4, (h4.shape[0], h4.shape[1] * h4.shape[3], h4.shape[2]))
+        h5 = F.reshape(h5, (h5.shape[0], h5.shape[1] * h5.shape[3], h5.shape[2]))
+        h6 = F.reshape(h6, (h6.shape[0], h6.shape[1] * h6.shape[3], h6.shape[2]))
+        h7 = F.reshape(h7, (h7.shape[0], h7.shape[1] * h7.shape[3], h7.shape[2]))
+        h8 = F.reshape(h8, (h8.shape[0], h8.shape[1] * h8.shape[3], h8.shape[2]))
+        h9 = F.reshape(h9, (h9.shape[0], h9.shape[1] * h9.shape[3], h9.shape[2]))
+        h10 = F.reshape(h10, (h10.shape[0], h10.shape[1] * h10.shape[3], h10.shape[2]))
+        h = F.dstack((h1, h2, h3, h4, h5, h6, h7, h8, h9, h10))
+        h = F.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
+        h = self.l6(h)
+        h = self.af_block3_1(h)
+        h = self.af_block3_2(h)
+        h = self.l7(h)
+        # h = F.sign(h)
         return h

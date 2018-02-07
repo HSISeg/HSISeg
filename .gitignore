@@ -1,0 +1,10 @@
+*.xml
+*.iml
+*.pyc
+*.mat
+**/*.png
+*.pickle
+*.dot
+*.DS_Store
+result/log
+result/1/*
