@@ -47,3 +47,27 @@ Proceedings of The 32nd International Conference on Machine Learning. 2015.
 [3] LeCun, Yann. "The MNIST database of handwritten digits." http://yann.lecun.com/exdb/mnist/ (1998).
 
 [4] Krizhevsky, Alex, and Geoffrey Hinton. "Learning multiple layers of features from tiny images." (2009).
+
+
+To run on Indian pines data follow the steps:
+
+1) create a virtualenv, install python 3 and pip3, install all dependencies using pip3(in the virtualenv) from requirements.txt
+
+2) python3 preprocessing.py
+
+3) python3 create_binary_data.py
+
+Dataset created as mldata/Indian_pines_Binary_Test_patch_3.mat and mldata/Indian_pines_Binary_Full_Train_patch_3.mat
+Now Run PU/PN/multi_class learning on the same dataset
+
+To run PU learning
+
+a) python3 train.py
+
+To run PN
+
+a) python3 PN_learning.py
+
+To run multi_class
+
+a) python3 multi_class.py

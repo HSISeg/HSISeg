@@ -20,19 +20,19 @@ elif opt.data == "PaviaU":
     opt.url1 = "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat"
     opt.url2 = "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat"
 
-# ##loading images for input and target image
-# try:
-#     input_mat = io.loadmat('./data/' + opt.data + '.mat')[opt.data.lower()]
-#     target_mat = io.loadmat('./data/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
-# except:
-#     os.system('wget' + ' ./data/' + opt.data + '.mat' + ' ' + opt.url1)
-#     os.system('wget' + ' ./data/' + opt.data + '.mat' + ' ' + opt.url2)
-#     input_mat = io.loadmat('./data/' + opt.data + '.mat')[opt.data.lower()]
-#     target_mat = io.loadmat('./data/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
-#
+##loading images for input and target image
+try:
+    input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
+    target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
+except:
+    os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url1)
+    os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url2)
+    input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
+    target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
 
-input_mat = io.loadmat("Indian_pines.mat")[opt.data.lower()]
-target_mat = io.loadmat("Indian_pines_gt.mat")[opt.data.lower() + '_gt']
+
+# input_mat = io.loadmat("Indian_pines.mat")[opt.data.lower()]
+# target_mat = io.loadmat("Indian_pines_gt.mat")[opt.data.lower() + '_gt']
 
 print("input_mat dimensions",input_mat.shape)
 PATCH_SIZE = opt.patch_size

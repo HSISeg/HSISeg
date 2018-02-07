@@ -6,5 +6,6 @@
 *.pickle
 *.dot
 *.DS_Store
+.idea/
 result/log
 result/1/*
