@@ -11,9 +11,7 @@ class MyClassifier(Chain):
     def __call__(self, x, t, loss_func):
         self.clear()
         h = self.calculate(x)
-        # print("h",h)
         self.loss = loss_func(h, t)
-        # print("loss_func",loss_func,"t",t,"h",h,"self.loss",self.loss)
         chainer.reporter.report({'loss': self.loss}, self)
         return self.loss
 
@@ -25,28 +23,36 @@ class MyClassifier(Chain):
 
     def error(self, x, t):
         xp = cuda.get_array_module(x, False)
-        # print(x.shape)
         size = len(t)
         with chainer.no_backprop_mode():
             with chainer.using_config("train", False):
-                h = xp.reshape(xp.sign(self.calculate(x).data), size)
+                if self.loss_func_name == "sigmoid_cross_entropy":
+                    h = xp.reshape(F.sigmoid(self.calculate(x)).data, size)
+                else:
+                    h = xp.reshape(xp.sign(self.calculate(x).data), size)
+
+
         if isinstance(h, chainer.Variable):
             h = h.data
+        if self.loss_func_name == "sigmoid_cross_entropy":
+            h[xp.where(h >= 0.5)] = 1  # For binary
+            h[xp.where(h < 0.5)] = 0  # For binary
+
         if isinstance(t, chainer.Variable):
             t = t.data
         result = (h != t).sum() / size
-        # print("result",np.unique(h))
         chainer.reporter.report({'error': result}, self)
         return cuda.to_cpu(result) if xp != np else result
 
 
 class LinearClassifier(MyClassifier, Chain):
-    def __init__(self, prior, dim):
+    def __init__(self, prior, dim, channels, loss_func_name):
         super(LinearClassifier, self).__init__(
             l = L.Linear(dim, 2),
             l2 = L.Linear(2,1)
         )
         self.prior = prior
+        self.loss_func_name = loss_func_name
 
     def calculate(self, x):
         h = self.l(x)
@@ -54,13 +60,13 @@ class LinearClassifier(MyClassifier, Chain):
         print("model params", self.l.W,self.l.b)
         return h
 
-
 class ThreeLayerPerceptron(MyClassifier, Chain):
-    def __init__(self, prior, dim):
-        super(ThreeLayerPerceptron, self).__init__(l1=L.Linear(None, 100),
+    def __init__(self, prior, dim, channels, loss_func_name):
+        super(ThreeLayerPerceptron, self).__init__(l1=L.Linear(dim, 100),
                                                    l2=L.Linear(100, 1))
         self.af = F.relu
         self.prior = prior
+        self.loss_func_name = loss_func_name
 
     def calculate(self, x):
         h = self.l1(x)
@@ -68,40 +74,53 @@ class ThreeLayerPerceptron(MyClassifier, Chain):
         h = self.l2(h)
         return h
 
-
 class MultiLayerPerceptron(MyClassifier, Chain):
-    def __init__(self, prior, dim):
-        super(MultiLayerPerceptron, self).__init__(l1=L.Linear(dim, 300, nobias=True),
-                                                   b1=L.BatchNormalization(300),
-                                                   l2=L.Linear(300, 300, nobias=True),
-                                                   b2=L.BatchNormalization(300),
-                                                   l3=L.Linear(300, 300, nobias=True),
-                                                   b3=L.BatchNormalization(300),
-                                                   l4=L.Linear(300, 300, nobias=True),
-                                                   b4=L.BatchNormalization(300),
-                                                   l5=L.Linear(300, 1))
-        self.af = F.relu
+    def __init__(self, prior, dim, channels, loss_func_name):
+        super(MultiLayerPerceptron, self).__init__(
+            # input size of each layer will be inferred when set `None`
+            l1=L.Linear(None, 300),  # n_in -> n_units
+            l2=L.Linear(None, 300),  # n_units -> n_units
+            l3=L.Linear(None, 1),  # n_units -> n_out
+        )
         self.prior = prior
+        self.loss_func_name = loss_func_name
+
+
+    # def __init__(self, prior, dim):
+    #     super(MultiLayerPerceptron, self).__init__(l1=L.Linear(dim, 300, nobias=True),
+    #                                                b1=L.BatchNormalization(300),
+    #                                                l2=L.Linear(300, 300, nobias=True),
+    #                                                b2=L.BatchNormalization(300),
+    #                                                l3=L.Linear(300, 300, nobias=True),
+    #                                                b3=L.BatchNormalization(300),
+    #                                                l4=L.Linear(300, 300, nobias=True),
+    #                                                b4=L.BatchNormalization(300),
+    #                                                l5=L.Linear(300, 1))
+    #     self.af = F.relu
+    #     self.prior = prior
 
     def calculate(self, x):
-        h = self.l1(x)
-        h = self.b1(h)
-        h = self.af(h)
-        h = self.l2(h)
-        h = self.b2(h)
-        h = self.af(h)
-        h = self.l3(h)
-        h = self.b3(h)
-        h = self.af(h)
-        h = self.l4(h)
-        h = self.b4(h)
-        h = self.af(h)
-        h = self.l5(h)
+        h1 = F.relu(self.l1(x))
+        h2 = F.relu(self.l2(h1))
+        h = self.l3(h2)
+        # h = self.l1(x)
+        # h = self.b1(h)
+        # h = self.af(h)
+        # h = self.l2(h)
+        # h = self.b2(h)
+        # h = self.af(h)
+        # h = self.l3(h)
+        # h = self.b3(h)
+        # h = self.af(h)
+        # h = self.l4(h)
+        # h = self.b4(h)
+        # h = self.af(h)
+        # h = self.l5(h)
         return h
 
 
 class CNN(MyClassifier, Chain):
-    def __init__(self, prior, dim):
+    def __init__(self, prior, dim, channels, loss_func_name):
         super(CNN, self).__init__(
             conv1=L.Convolution2D(3, 96, 3, pad=1),
             conv2=L.Convolution2D(96, 96, 3, pad=1),
@@ -127,6 +146,7 @@ class CNN(MyClassifier, Chain):
         )
         self.af = F.relu
         self.prior = prior
+        self.loss_func_name = loss_func_name
 
     def calculate(self, x):
         h = self.conv1(x)
@@ -163,9 +183,8 @@ class CNN(MyClassifier, Chain):
         h = self.fc3(h)
         return h
 
-
 class BassNet(MyClassifier, Chain):
-    def __init__(self, prior, channels):
+    def __init__(self, prior, dim, channels, loss_func_name):
         self.block1_nfilters = channels
         self.block1_patch_size = 1
         self.af_block1 = F.relu
@@ -195,8 +214,9 @@ class BassNet(MyClassifier, Chain):
         self.prior = prior
         self.input_channels = channels
         self.band_size = self.block1_nfilters/self.nbands
+        self.loss_func_name = loss_func_name
         super(BassNet, self).__init__(
-            l1 = L.Convolution2D(channels,self.block1_nfilters,self.block1_patch_size),
+            l1 = L.Convolution2D(channels, self.block1_nfilters, self.block1_patch_size),
             l2 = L.Convolution2D(self.image_length,self.block2_nfilters_1,(self.image_width,self.block2_patch_size_1)),
             l3 = L.Convolution2D(self.block2_nfilters_1,self.block2_nfilters_2,(1,self.block2_patch_size_2)),
             l4 = L.Convolution2D(self.block2_nfilters_2,self.block2_nfilters_3,(1,self.block2_patch_size_3)),
@@ -327,5 +347,4 @@ class BassNet(MyClassifier, Chain):
         h = self.af_block3_1(h)
         h = self.af_block3_2(h)
         h = self.l7(h)
-        # h = F.sign(h)
         return h

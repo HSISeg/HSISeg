@@ -7,16 +7,18 @@ from chainer.utils import type_check
 class PULoss(function.Function):
     """wrapper of loss function for PU learning"""
 
-    def __init__(self, prior, loss=(lambda x: F.sigmoid(-x)), gamma=1, beta=0, nnPU=True):
+    def __init__(self, prior, loss_func_name='sigmoid', unlabeled = -1, loss=(lambda x: F.sigmoid(-x)), gamma=1, beta=0, nnPU=True):
         if not 0 < prior < 1:
             raise NotImplementedError("The class prior should be in (0, 1)")
         self.prior = prior
         self.gamma = gamma
         self.beta = beta
         self.loss_func = loss
+        self.loss_func_name = loss_func_name
         self.nnPU = nnPU
         self.positive = 1
-        self.unlabeled = -1
+        # self.unlabeled = -1
+        self.unlabeled = unlabeled # For binary
 
     def check_type_forward(self, in_types):
         type_check.expect(in_types.size() == 2)
@@ -36,8 +38,14 @@ class PULoss(function.Function):
         positive, unlabeled = t == self.positive, t == self.unlabeled
         n_positive, n_unlabeled = max([1., xp.sum(positive)]), max([1., xp.sum(unlabeled)])
         self.x_in = Variable(x)
-        y_positive = self.loss_func(self.x_in)
-        y_unlabeled = self.loss_func(-self.x_in)
+        t_positive = numpy.ones(x.shape, dtype=numpy.int32) # For binary
+        t_negative = numpy.zeros(x.shape, dtype=numpy.int32) # For binary
+        if self.loss_func_name == "sigmoid_cross_entropy":
+            y_positive = self.loss_func(self.x_in, t_positive, reduce='no') # For binary
+            y_unlabeled = self.loss_func(self.x_in, t_negative, reduce='no') # For binary
+        else:
+            y_positive = self.loss_func(self.x_in)
+            y_unlabeled = self.loss_func(-self.x_in)
         positive_risk = F.sum(self.prior * positive / n_positive * y_positive)
         negative_risk = F.sum((unlabeled / n_unlabeled - self.prior * positive / n_positive) * y_unlabeled)
         objective = positive_risk + negative_risk

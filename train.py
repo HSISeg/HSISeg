@@ -4,7 +4,7 @@ import argparse
 import chainer
 import numpy as np
 from chainer import Chain, cuda
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 
 try:
     from matplotlib import use
@@ -50,15 +50,18 @@ def process_args():
     #                     help='# of unlabeled data')
     # 1679
     # 7000
-    parser.add_argument('--unlabeled', '-u', default=279, type=int,
+    # 279
+    parser.add_argument('--unlabeled', '-u', default=1679, type=int,
                         help='# of unlabeled data')
+    parser.add_argument('--unlabeled_tag', '-ut', default=0, type=int,
+                        help=' tag of unlabeled data')
     parser.add_argument('--epoch', '-e', default=100, type=int,
                         help='# of epochs to learn')
     parser.add_argument('--beta', '-B', default=0., type=float,
                         help='Beta parameter of nnPU')
     parser.add_argument('--gamma', '-G', default=1., type=float,
                         help='Gamma parameter of nnPU')
-    parser.add_argument('--loss', type=str, default="sigmoid", choices=['logistic', 'sigmoid'],
+    parser.add_argument('--loss', type=str, default="sigmoid_cross_entropy", choices=['logistic', 'sigmoid','sigmoid_cross_entropy'],
                         help='The name of a loss function')
     # parser.add_argument('--model', '-m', default='3lp', choices=['linear', '3lp', 'mlp'],
     #                     help='The name of a classification model')
@@ -105,7 +108,7 @@ def process_args():
 
 
 def select_loss(loss_name):
-    losses = {"logistic": lambda x: F.softplus(-x), "sigmoid": lambda x: F.sigmoid(-x)}
+    losses = {"logistic": lambda x: F.softplus(-x), "sigmoid": lambda x: F.sigmoid(-x), "sigmoid_cross_entropy": F.sigmoid_cross_entropy}
     return losses[loss_name]
 
 
@@ -192,27 +195,37 @@ def get_accuracy(model,x,t):
     size = len(t)
     with chainer.no_backprop_mode():
         with chainer.using_config("train", False):
-            h = xp.reshape(xp.sign(model.calculate(x).data), size)
+            # h = xp.reshape(xp.sign(model.calculate(x).data), size)
+            h = xp.reshape(F.sigmoid(model.calculate(x)).data, size) # For binary
     if isinstance(h, chainer.Variable):
         h = h.data
+
+    h[np.where(h >= 0.5)] = 1 # For binary
+    h[np.where(h < 0.5)] = 0 # For binary
+
     if isinstance(t, chainer.Variable):
         t = t.data
     # average_precision = average_precision_score(t, h)
-    precision, recall, _, _ = precision_recall_fscore_support(t, h, pos_label = 1, average='binary')
-    print("precision",precision, "recall", recall)
-
+    try:
+        precision, recall, _, _ = precision_recall_fscore_support(t, h, pos_label = 1, average='binary')
+        # print("precision",precision, "recall", recall)
+    except:
+        precision, recall = 0.0, 0.0
     # print()
-    negative, positive = np.unique(t)
-    positive_data = t == positive
-    n_positive = positive_data.sum()
-    n_negative = size - n_positive
-    n_positive_match = (h[positive_data] == t[positive_data]).sum()
-    n_negative_match = (h[np.logical_not(positive_data)] == t[np.logical_not(positive_data)]).sum()
-    print("n_positive_test", n_positive, "n_negative_test", n_negative, np.unique(h), n_positive_match, n_negative_match)
-    accuracy = (h == t).sum() / size
+    # negative, positive = np.unique(t)
+    # positive_data = t == positive
+    # n_positive = positive_data.sum()
+    # n_negative = size - n_positive
+    # n_positive_match = (h[positive_data] == t[positive_data]).sum()
+    # n_negative_match = (h[np.logical_not(positive_data)] == t[np.logical_not(positive_data)]).sum()
+    # print("n_positive_test", n_positive, "n_negative_test", n_negative, np.unique(h), n_positive_match, n_negative_match)
+    # accuracy = (h == t).sum() / size
     # print(model.l7.W,"l7_Weight")
     # print("accuracy",accuracy)
-    return  accuracy
+
+    tn, fp, fn, tp = confusion_matrix(t, h).ravel()
+    # print("precision", precision, "recall", recall)
+    return precision, recall, (tn, fp, fn, tp)
 
 def main():
     args = process_args()
@@ -229,11 +242,11 @@ def main():
     # model setup
     loss_type = select_loss(args.loss)
     selected_model = select_model(args.model)
-    model = selected_model(prior, channel)
+    model = selected_model(prior, dim, channel, args.loss)
     # print("loss_type",loss_type)
     models = {"nnPU": copy.deepcopy(model), "uPU": copy.deepcopy(model)}
-    loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, nnPU=True, gamma=args.gamma, beta=args.beta),
-                  "uPU": PULoss(prior, loss=loss_type, nnPU=False)}
+    loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled = args.unlabeled_tag, nnPU=True, gamma=args.gamma, beta=args.beta),
+                  "uPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled=args.unlabeled_tag, nnPU=False)}
     if args.gpu >= 0:
         for m in models.values():
             m.to_gpu(args.gpu)
@@ -266,8 +279,10 @@ def main():
 
     # run training
     trainer.run()
-    accuracy = get_accuracy(models['nnPU'],testX,testY)
-    print("accuracy on test data",accuracy)
+    precision, recall, (tn, fp, fn, tp) = get_accuracy(models['nnPU'],testX,testY)
+    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
+    # print("accuracy on test data",accuracy)
+    return precision, recall, (tn, fp, fn, tp)
 
 if __name__ == '__main__':
     main()

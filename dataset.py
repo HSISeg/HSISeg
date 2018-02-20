@@ -493,6 +493,9 @@ def make_dataset(dataset, n_labeled, n_unlabeled):
         Y = np.asarray(np.concatenate((np.ones(n_lp), -np.ones(n_u))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
+
+        Y[np.where(Y == -1)] = 0 # For binary
+
         return X, Y, prior
 
     def make_PN_dataset_from_binary_dataset(x, y):
@@ -507,6 +510,9 @@ def make_dataset(dataset, n_labeled, n_unlabeled):
         Y = np.asarray(np.concatenate((np.ones(n_p), -np.ones(n_n))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
+
+        Y[np.where(Y == -1)] = 0 # For binary
+
         return X, Y
 
     (_trainX, _trainY), (_testX, _testY) = dataset

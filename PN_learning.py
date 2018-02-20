@@ -9,8 +9,59 @@ import chainer.functions as F
 from chainer import computational_graph
 import chainer.links as L
 from chainer import Chain, cuda
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 
 half_patch = 1
+
+class MultiLayerPerceptron(Chain):
+    def __init__(self):
+        super(MultiLayerPerceptron, self).__init__(
+            # input size of each layer will be inferred when set `None`
+            l1=L.Linear(None, 300),  # n_in -> n_units
+            l2=L.Linear(None, 300),  # n_units -> n_units
+            l3=L.Linear(None, 1),  # n_units -> n_out
+        )
+
+    # def __init__(self):
+        # super(MultiLayerPerceptron, self).__init__(l1=L.Linear(None, 300, nobias=True),
+        #                                            b1=L.BatchNormalization(300),
+        #                                            l2=L.Linear(300, 300, nobias=True),
+        #                                            b2=L.BatchNormalization(300),
+        #                                            l3=L.Linear(300, 300, nobias=True),
+        #                                            b3=L.BatchNormalization(300),
+        #                                            l4=L.Linear(300, 300, nobias=True),
+        #                                            b4=L.BatchNormalization(300),
+        #                                            l5=L.Linear(300, 1))
+        # self.af = F.relu
+
+
+    def calculate(self, x):
+        h1 = F.relu(self.l1(x))
+        h2 = F.relu(self.l2(h1))
+        h = self.l3(h2)
+        h = F.sigmoid(h)
+        h = F.reshape(h, (h.shape[0],))
+        # h = self.l1(x)
+        # h = self.b1(h)
+        # h = self.af(h)
+        # h = self.l2(h)
+        # h = self.b2(h)
+        # h = self.af(h)
+        # h = self.l3(h)
+        # h = self.b3(h)
+        # h = self.af(h)
+        # h = self.l4(h)
+        # h = self.b4(h)
+        # h = self.af(h)
+        # h = self.l5(h)
+        return h
+
+    def __call__(self, x):
+        # print(x.shape)
+        h = self.calculate(x)
+        print(h.shape)
+        return h
+
 
 class Configuration1(Chain):
     def __init__(self, channels):
@@ -177,7 +228,7 @@ class Configuration1(Chain):
         h = self.af_block3_1(h)
         h = self.af_block3_2(h)
         h = self.l7(h)
-        h = F.sigmoid(h)
+        # h = F.sigmoid(h)
         h = F.reshape(h, (h.shape[0],))
         return h
 
@@ -406,21 +457,30 @@ class SoftmaxClassifier(chainer.Chain):
 def get_accuracy(model, x, t):
     size = len(t)
     x = np.asarray(x, dtype=np.float32)
-    h = model.calculate(x)
+    h = F.sigmoid(model.calculate(x))
     # h = np.reshape(np.sign(model.calculate(x).data), size)
     if isinstance(h, chainer.Variable):
         h = h.data
     if isinstance(t, chainer.Variable):
         t = t.data
     negative, positive = np.unique(t)
-    positive_data = t == positive
-    n_positive = positive_data.sum()
-    n_negative = size - n_positive
-    n_positive_match = (h[positive_data] == t[positive_data]).sum()
-    n_negative_match = (h[np.logical_not(positive_data)] == t[np.logical_not(positive_data)]).sum()
-    print("n_positive_test", n_positive, "n_negative_test", n_negative, n_positive_match, n_negative_match)
-    accuracy = (h == t).sum() / size
-    return accuracy
+    h[np.where(h >= 0.5)] = 1
+    h[np.where(h < 0.5)] = 0
+    # positive_data = t == positive
+    # n_positive = positive_data.sum()
+    # n_negative = size - n_positive
+    # n_positive_match = (h[positive_data] == t[positive_data]).sum()
+    # n_negative_match = (h[np.logical_not(positive_data)] == t[np.logical_not(positive_data)]).sum()
+    # # print("n_positive_test", n_positive, "n_negative_test", n_negative, n_positive_match, n_negative_match)
+    # accuracy = (h == t).sum() / size
+
+    try:
+        precision, recall, _, _ = precision_recall_fscore_support(t, h, pos_label=1, average='binary')
+    except Exception as e:
+        precision, recall = 0.0, 0.0
+    tn, fp, fn, tp = confusion_matrix(t, h).ravel()
+    # print("precision", precision, "recall", recall)
+    return precision, recall, (tn, fp, fn, tp)
 
 
 def load_saved_data():
@@ -434,88 +494,92 @@ def load_saved_data():
     Y_tr = np.reshape(Y_tr, (Y_tr.shape[0] * Y_tr.shape[1]))
     return (X_tr, Y_tr), (X_te, Y_te)
 
+def run_classification():
+    # (X_tr, Y_tr), (X_te, Y_te), class_indx = get_indian_pines(121, 7000)
+    (X_tr, Y_tr), (X_te, Y_te) = load_saved_data()
+    # print (class_indx,"class_indx")
+    # Y_tr = binarize_indian_pines(Y_tr, class_indx)
+    # Y_te = binarize_indian_pines(Y_te, class_indx)
+    # full_train = {}
+    # full_train["train_patch"] = X_tr
+    # full_train["train_labels"] = Y_tr
+    # scipy.io.savemat("mldata/Indian_Pines_Binary_Full_Train_patch_my" + str(half_patch * 2 + 1) + ".mat", full_train)
+    # test = {}
+    # test["test_patch"] = X_te
+    # test["test_labels"] = Y_te
+    # scipy.io.savemat("mldata/Indian_Pines_Binary_Test_patch_my" + str(half_patch * 2 + 1) + ".mat", test)
+    # print(np.unique(Y_tr),"Y_tr_labels",np.unique(Y_te),"Y_te_labels")
+    (X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
 
-# (X_tr, Y_tr), (X_te, Y_te), class_indx = get_indian_pines(121, 7000)
-(X_tr, Y_tr), (X_te, Y_te) = load_saved_data()
-# print (class_indx,"class_indx")
-# Y_tr = binarize_indian_pines(Y_tr, class_indx)
-# Y_te = binarize_indian_pines(Y_te, class_indx)
-# full_train = {}
-# full_train["train_patch"] = X_tr
-# full_train["train_labels"] = Y_tr
-# scipy.io.savemat("mldata/Indian_Pines_Binary_Full_Train_patch_my" + str(half_patch * 2 + 1) + ".mat", full_train)
-# test = {}
-# test["test_patch"] = X_te
-# test["test_labels"] = Y_te
-# scipy.io.savemat("mldata/Indian_Pines_Binary_Test_patch_my" + str(half_patch * 2 + 1) + ".mat", test)
-print(np.unique(Y_tr),"Y_tr_labels",np.unique(Y_te),"Y_te_labels")
-(X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
+    channels = X_tr.shape[1]
+    model = Configuration1(channels)
+    # model = MultiLayerPerceptron()
 
-channels = X_tr.shape[1]
-model = Configuration1(channels)
+    train = (X_tr, Y_tr)
+    test = (X_te, Y_te)
 
-train = (X_tr, Y_tr)
-test = (X_te, Y_te)
+    batchsize = 1000
+    n_epoch = 400
 
-batchsize = 1000
-n_epoch = 100
+    N = len(train[1])  # training data size
+    N_test = len(test[1])
+    classifier_model = SoftmaxClassifier(model)
+    optimizer = optimizers.Adam()
+    optimizer.setup(classifier_model)
+    out = 'result'
+    # Learning loop
+    for epoch in six.moves.range(1, n_epoch + 1):
+        print('epoch', epoch)
 
-N = len(train[1])  # training data size
-N_test = len(test[1])
-classifier_model = SoftmaxClassifier(model)
-optimizer = optimizers.Adam()
-optimizer.setup(classifier_model)
-out = 'result'
-# Learning loop
-for epoch in six.moves.range(1, n_epoch + 1):
-    print('epoch', epoch)
+        # training
+        perm = np.random.permutation(N)
+        sum_accuracy = 0
+        sum_loss = 0
+        start = time.time()
+        for i in six.moves.range(0, N, batchsize):
+            x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]],dtype=np.float32))
+            t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]],dtype=np.int32))
+            # Pass the loss function (Classifier defines it) and its arguments
+            optimizer.update(classifier_model, x, t)
 
-    # training
-    perm = np.random.permutation(N)
-    sum_accuracy = 0
-    sum_loss = 0
-    start = time.time()
-    for i in six.moves.range(0, N, batchsize):
-        x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]],dtype=np.float32))
-        t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]],dtype=np.int32))
-        # Pass the loss function (Classifier defines it) and its arguments
-        optimizer.update(classifier_model, x, t)
+            if epoch == 1 and i == 0:
+                with open('{}/graph.dot'.format(out), 'w') as o:
+                    g = computational_graph.build_computational_graph(
+                        (classifier_model.loss,))
+                    o.write(g.dump())
+                print('graph generated')
 
-        if epoch == 1 and i == 0:
-            with open('{}/graph.dot'.format(out), 'w') as o:
-                g = computational_graph.build_computational_graph(
-                    (classifier_model.loss,))
-                o.write(g.dump())
-            print('graph generated')
+            sum_loss += float(classifier_model.loss.data) * len(t.data)
+            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+        end = time.time()
+        elapsed_time = end - start
+        throughput = N / elapsed_time
+        print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
+            sum_loss / N, sum_accuracy / N, throughput))
 
-        sum_loss += float(classifier_model.loss.data) * len(t.data)
-        sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-    end = time.time()
-    elapsed_time = end - start
-    throughput = N / elapsed_time
-    print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
-        sum_loss / N, sum_accuracy / N, throughput))
+        # evaluation
+        sum_accuracy = 0
+        sum_loss = 0
+        for i in six.moves.range(0, N_test, batchsize):
+            index = np.asarray(list(range(i, i + batchsize)))
+            x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
+            t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
+            with chainer.no_backprop_mode():
+                # When back propagation is not necessary,
+                # we can omit constructing graph path for better performance.
+                # `no_backprop_mode()` is introduced from chainer v2,
+                # while `volatile` flag was used in chainer v1.
+                loss = classifier_model(x, t)
+            sum_loss += float(loss.data) * len(t.data)
+            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
 
-    # evaluation
-    sum_accuracy = 0
-    sum_loss = 0
-    for i in six.moves.range(0, N_test, batchsize):
-        index = np.asarray(list(range(i, i + batchsize)))
-        x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
-        t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
-        with chainer.no_backprop_mode():
-            # When back propagation is not necessary,
-            # we can omit constructing graph path for better performance.
-            # `no_backprop_mode()` is introduced from chainer v2,
-            # while `volatile` flag was used in chainer v1.
-            loss = classifier_model(x, t)
-        sum_loss += float(loss.data) * len(t.data)
-        sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+        print('test  mean loss={}, accuracy={}'.format(
+            sum_loss / N_test, sum_accuracy / N_test))
 
-    print('test  mean loss={}, accuracy={}'.format(
-        sum_loss / N_test, sum_accuracy / N_test))
+    precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
+    # print("accuracy", accuracy)
+    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
+    # test data size
+    return precision, recall, (tn, fp, fn, tp)
 
-accuracy = get_accuracy(model, X_te, Y_te)
-print("accuracy", accuracy)
-
-# test data size
+# run_classification()
