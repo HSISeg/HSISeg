@@ -21,18 +21,18 @@ elif opt.data == "PaviaU":
     opt.url2 = "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat"
 
 ##loading images for input and target image
-try:
-    input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
-    target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
-except:
-    os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url1)
-    os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url2)
-    input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
-    target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
+# try:
+#     input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
+#     target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
+# except:
+#     os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url1)
+#     os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url2)
+#     input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
+#     target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
 
 
-# input_mat = io.loadmat("Indian_pines.mat")[opt.data.lower()]
-# target_mat = io.loadmat("Indian_pines_gt.mat")[opt.data.lower() + '_gt']
+input_mat = io.loadmat("Indian_pines.mat")[opt.data.lower()]
+target_mat = io.loadmat("Indian_pines_gt.mat")[opt.data.lower() + '_gt']
 
 print("input_mat dimensions",input_mat.shape)
 PATCH_SIZE = opt.patch_size
@@ -119,6 +119,7 @@ image_label = []
 for i in range(HEIGHT):
     for j in range(WIDTH):
         curr_inp = Patch(i, j)
+        print("curr_inp", curr_inp.shape, curr_inp.dtype)
         curr_tar = target_mat[i, j]
         # curr_inp = curr_inp.tolist()
         if (curr_tar != 0):  # Ignore patches with unknown landcover type for the central pixel

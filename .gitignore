@@ -7,6 +7,7 @@
 *.dot
 *.DS_Store
 *.csv
+*.db
 .idea/
 result/log
 result/1/*

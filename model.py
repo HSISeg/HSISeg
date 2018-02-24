@@ -37,7 +37,7 @@ class MyClassifier(Chain):
         if self.loss_func_name == "sigmoid_cross_entropy":
             h[xp.where(h >= 0.5)] = 1  # For binary
             h[xp.where(h < 0.5)] = 0  # For binary
-
+        print(np.unique(h))
         if isinstance(t, chainer.Variable):
             t = t.data
         result = (h != t).sum() / size
@@ -149,6 +149,7 @@ class CNN(MyClassifier, Chain):
         self.loss_func_name = loss_func_name
 
     def calculate(self, x):
+
         h = self.conv1(x)
         h = self.b1(h)
         h = self.af(h)
@@ -227,7 +228,7 @@ class BassNet(MyClassifier, Chain):
 
 
     def calculate(self, x):
-
+        # print(x.dtype)
         h = self.l1(x)
         h = self.af_block1(h)
         h1, h2, h3, h4, h5, h6, h7, h8, h9, h10 = F.split_axis(h,self.nbands,axis=1)

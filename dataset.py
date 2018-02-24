@@ -20,7 +20,7 @@ def get_mnist():
     y_te = np.asarray(y[60000:], dtype=np.int32)
     return (x_tr, y_tr), (x_te, y_te)
 
-def get_custom_data(n_labeled,n_unlabeled):
+def get_custom_data(n_labeled,n_unlabeled, unlabeled_tag):
     N_tr = n_labeled + n_unlabeled
     N_pos = (N_tr)//2  # number of points per class
     D = 2  # dimensionality
@@ -36,7 +36,8 @@ def get_custom_data(n_labeled,n_unlabeled):
     y = 5*x - 9
     indx = range(N_pos,N_tr)
     X_tr[indx] = np.transpose(np.vstack((x,y)))
-    Y_tr[indx] = -1
+    # Y_tr[indx] = -1
+    Y_tr[indx] = unlabeled_tag
 
     N_te = 2 * (n_labeled + n_unlabeled)
     N_pos = (N_te) // 2  # number of points per class
@@ -53,7 +54,8 @@ def get_custom_data(n_labeled,n_unlabeled):
     y = 5 * x - 9
     indx = range(N_pos, N_tr)
     X_te[indx] = np.transpose(np.vstack((x,y)))
-    Y_te[indx] = -1
+    # Y_te[indx] = -1
+    Y_te[indx] = unlabeled_tag
     return (X_tr,Y_tr), (X_te,Y_te)
 
 
@@ -379,26 +381,28 @@ def get_data_from_indices(indices, data):
 
 
 
-def load_saved_data():
+def load_saved_data(unlabeled_tag):
     mat = scipy.io.loadmat("mldata/Indian_pines_Binary_Full_Train_patch_3.mat")
     X_tr = mat["train_patch"]
     Y_tr = mat["train_labels"]
     mat = scipy.io.loadmat("mldata/Indian_pines_Binary_Test_patch_3.mat")
     X_te = mat["test_patch"]
     Y_te = mat["test_labels"]
-    Y_tr[np.where(Y_tr == 0)] = -1
-    Y_te[np.where(Y_te == 0)] = -1
+
+    Y_tr[np.where(Y_tr == 0)] = unlabeled_tag
+    Y_te[np.where(Y_te == 0)] = unlabeled_tag
+    # print(Y_tr.shape,"Y_tr.shape",X_tr.shape)
     Y_te = np.reshape(Y_te, (Y_te.shape[0] * Y_te.shape[1]))
     Y_tr = np.reshape(Y_tr, (Y_tr.shape[0] * Y_tr.shape[1]))
     return (X_tr, Y_tr), (X_te, Y_te)
 
 
 
-def binarize_mnist_class(_trainY, _testY):
+def binarize_mnist_class(_trainY, _testY, unlabeled_tag):
     trainY = np.ones(len(_trainY), dtype=np.int32)
     trainY[_trainY % 2 == 1] = -1
     testY = np.ones(len(_testY), dtype=np.int32)
-    testY[_testY % 2 == 1] = -1
+    testY[_testY % 2 == 1] = unlabeled_tag
     return trainY, testY
 
 
@@ -453,21 +457,25 @@ def get_cifar10(path="./mldata"):
     return (x_tr, y_tr), (x_te, y_te)  # , label_names
 
 
-def binarize_cifar10_class(_trainY, _testY):
+def binarize_cifar10_class(_trainY, _testY, unlabeled_tag):
     trainY = np.ones(len(_trainY), dtype=np.int32)
-    trainY[(_trainY==2)|(_trainY==3)|(_trainY==4)|(_trainY==5)|(_trainY==6)|(_trainY==7)] = -1
+    trainY[(_trainY==2)|(_trainY==3)|(_trainY==4)|(_trainY==5)|(_trainY==6)|(_trainY==7)] = unlabeled_tag
     testY = np.ones(len(_testY), dtype=np.int32)
-    testY[(_testY==2)|(_testY==3)|(_testY==4)|(_testY==5)|(_testY==6)|(_testY==7)] = -1
+    testY[(_testY==2)|(_testY==3)|(_testY==4)|(_testY==5)|(_testY==6)|(_testY==7)] = unlabeled_tag
     return trainY, testY
 
 
-def make_dataset(dataset, n_labeled, n_unlabeled):
-    def make_PU_dataset_from_binary_dataset(x, y, labeled=n_labeled, unlabeled=n_unlabeled):
+def make_dataset(dataset, n_labeled, n_unlabeled, unlabeled_tag):
+    def make_PU_dataset_from_binary_dataset(x, y, labeled=n_labeled, unlabeled=n_unlabeled, unlabeled_tag=unlabeled_tag):
         # print("PU dataset",labeled,unlabeled)
         labels = np.unique(y)
-        positive, negative = labels[1], labels[0]
+        if labels[0] == unlabeled_tag:
+            positive, negative = labels[1], labels[0]
+        else:
+            positive, negative = labels[0], labels[1]
+        # positive, negative = labels[1], labels[0]
         X, Y = np.asarray(x, dtype=np.float32), np.asarray(y, dtype=np.int32)
-        # print(X.shape,Y.shape)
+        # print(labeled,unlabeled)
         assert(len(X) == len(Y))
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
@@ -490,57 +498,62 @@ def make_dataset(dataset, n_labeled, n_unlabeled):
         Xun = X[Y == negative]
         X = np.asarray(np.concatenate((Xlp, Xup, Xun), axis=0), dtype=np.float32)
         # print(X.shape)
-        Y = np.asarray(np.concatenate((np.ones(n_lp), -np.ones(n_u))), dtype=np.int32)
+        # Y = np.asarray(np.concatenate((np.ones(n_lp), -np.ones(n_u))), dtype=np.int32)
+        Y = np.asarray(np.concatenate((np.ones(n_lp), np.full(n_u, unlabeled_tag))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
 
-        Y[np.where(Y == -1)] = 0 # For binary
+        # Y[np.where(Y == -1)] = 0 # For binary
 
         return X, Y, prior
 
-    def make_PN_dataset_from_binary_dataset(x, y):
+    def make_PN_dataset_from_binary_dataset(x, y, unlabeled_tag):
         labels = np.unique(y)
-        positive, negative = labels[1], labels[0]
+        if labels[0] == unlabeled_tag:
+            positive, negative = labels[1], labels[0]
+        else:
+            positive, negative = labels[0], labels[1]
         X, Y = np.asarray(x, dtype=np.float32), np.asarray(y, dtype=np.int32)
         n_p = (Y == positive).sum()
         n_n = (Y == negative).sum()
         Xp = X[Y == positive][:n_p]
         Xn = X[Y == negative][:n_n]
         X = np.asarray(np.concatenate((Xp, Xn)), dtype=np.float32)
-        Y = np.asarray(np.concatenate((np.ones(n_p), -np.ones(n_n))), dtype=np.int32)
+        # Y = np.asarray(np.concatenate((np.ones(n_p), -np.ones(n_n))), dtype=np.int32)
+        Y = np.asarray(np.concatenate((np.ones(n_p), np.full(n_n, unlabeled_tag))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
 
-        Y[np.where(Y == -1)] = 0 # For binary
+        # Y[np.where(Y == -1)] = 0 # For binary
 
         return X, Y
 
     (_trainX, _trainY), (_testX, _testY) = dataset
     trainX, trainY, prior = make_PU_dataset_from_binary_dataset(_trainX, _trainY)
-    testX, testY = make_PN_dataset_from_binary_dataset(_testX, _testY)
+    testX, testY = make_PN_dataset_from_binary_dataset(_testX, _testY, unlabeled_tag)
     print("training:{}".format(trainX.shape))
     print("test:{}".format(testX.shape))
     return list(zip(trainX, trainY)), list(zip(testX, testY)), prior, testX, testY,trainX, trainY
 
 
-def load_dataset(dataset_name, n_labeled, n_unlabeled):
+def load_dataset(dataset_name, n_labeled, n_unlabeled, unlabeled_tag):
     # print(dataset_name,n_labeled,n_unlabeled)
     if dataset_name == "mnist":
         (trainX, trainY), (testX, testY) = get_mnist()
-        trainY, testY = binarize_mnist_class(trainY, testY)
+        trainY, testY = binarize_mnist_class(trainY, testY, unlabeled_tag)
     elif dataset_name == "cifar10":
         (trainX, trainY), (testX, testY) = get_cifar10()
-        trainY, testY = binarize_cifar10_class(trainY, testY)
+        trainY, testY = binarize_cifar10_class(trainY, testY, unlabeled_tag)
     elif dataset_name == 'indian_pines':
         # (trainX, trainY), (testX, testY), class_indx = get_indian_pines(n_labeled, n_unlabeled)
         # # print("trainX.shape", trainX.shape)
         # trainY = binarize_indian_pines(trainY, class_indx)
         # testY = binarize_indian_pines(testY, class_indx)
-        (trainX, trainY), (testX, testY) = load_saved_data()
+        (trainX, trainY), (testX, testY) = load_saved_data(unlabeled_tag)
         # (trainX, trainY), (testX,testY), n_unlabeled = get_indian_pines(n_unlabeled)
     elif dataset_name == 'custom':
-        (trainX,trainY), (testX,testY) = get_custom_data(n_labeled,n_unlabeled)
+        (trainX,trainY), (testX,testY) = get_custom_data(n_labeled,n_unlabeled, unlabeled_tag)
     else:
         raise ValueError("dataset name {} is unknown.".format(dataset_name))
-    XYtrain, XYtest, prior,testX, testY,trainX, trainY = make_dataset(((trainX, trainY), (testX, testY)), n_labeled, n_unlabeled)
+    XYtrain, XYtest, prior,testX, testY,trainX, trainY = make_dataset(((trainX, trainY), (testX, testY)), n_labeled, n_unlabeled, unlabeled_tag)
     return XYtrain, XYtest, prior, testX, testY,trainX, trainY

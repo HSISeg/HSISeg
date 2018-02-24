@@ -75,5 +75,5 @@ def save_data(pos_class, neg_class, random_neg_class):
     scipy.io.savemat("mldata/Indian_pines_Binary_Test_patch_" + str(patch_size) + ".mat", test)
 
 
-save_data(7, 12, True)
+save_data(7, 4, False)
 

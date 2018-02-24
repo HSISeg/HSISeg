@@ -51,11 +51,11 @@ def process_args():
     # 1679
     # 7000
     # 279
-    parser.add_argument('--unlabeled', '-u', default=1679, type=int,
+    parser.add_argument('--unlabeled', '-u', default=279, type=int,
                         help='# of unlabeled data')
     parser.add_argument('--unlabeled_tag', '-ut', default=0, type=int,
                         help=' tag of unlabeled data')
-    parser.add_argument('--epoch', '-e', default=100, type=int,
+    parser.add_argument('--epoch', '-e', default=30, type=int,
                         help='# of epochs to learn')
     parser.add_argument('--beta', '-B', default=0., type=float,
                         help='Beta parameter of nnPU')
@@ -230,7 +230,7 @@ def get_accuracy(model,x,t):
 def main():
     args = process_args()
     # dataset setup
-    XYtrain, XYtest, prior, testX, testY, trainX, trainY = load_dataset(args.dataset, args.labeled, args.unlabeled)
+    XYtrain, XYtest, prior, testX, testY, trainX, trainY = load_dataset(args.dataset, args.labeled, args.unlabeled, args.unlabeled_tag)
     # print(len(XYtrain), len(XYtrain[0]), XYtrain[0][1], XYtrain[0][0].size, len(XYtrain[0][0]))
     dim = XYtrain[0][0].size // len(XYtrain[0][0])
     channel = XYtrain[0][0].shape[0]
@@ -244,9 +244,13 @@ def main():
     selected_model = select_model(args.model)
     model = selected_model(prior, dim, channel, args.loss)
     # print("loss_type",loss_type)
-    models = {"nnPU": copy.deepcopy(model), "uPU": copy.deepcopy(model)}
-    loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled = args.unlabeled_tag, nnPU=True, gamma=args.gamma, beta=args.beta),
-                  "uPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled=args.unlabeled_tag, nnPU=False)}
+    # models = {"nnPU": copy.deepcopy(model), "uPU": copy.deepcopy(model)}
+    models = {"nnPU": copy.deepcopy(model)}
+    # loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled = args.unlabeled_tag, nnPU=True, gamma=args.gamma, beta=args.beta),
+                  # "uPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled=args.unlabeled_tag, nnPU=False)}
+    loss_funcs = {
+        "nnPU": PULoss(prior, loss=loss_type, loss_func_name=args.loss, unlabeled=args.unlabeled_tag, nnPU=True,
+                       gamma=args.gamma, beta=args.beta)}
     if args.gpu >= 0:
         for m in models.values():
             m.to_gpu(args.gpu)
@@ -260,13 +264,19 @@ def main():
     trainer.extend(extensions.LogReport(trigger=(1, 'epoch')))
     trainer.extend(MultiEvaluator(test_iter, models, device=args.gpu))
     trainer.extend(extensions.ProgressBar())
+    # trainer.extend(extensions.PrintReport(
+                # ['epoch', 'nnPU/loss', 'test/nnPU/error', 'uPU/loss', 'test/uPU/error', 'elapsed_time']))
     trainer.extend(extensions.PrintReport(
-                ['epoch', 'nnPU/loss', 'test/nnPU/error', 'uPU/loss', 'test/uPU/error', 'elapsed_time']))
+        ['epoch', 'nnPU/loss', 'test/nnPU/error', 'elapsed_time']))
     if extensions.PlotReport.available():
+            # trainer.extend(
+            #     extensions.PlotReport(['nnPU/loss', 'uPU/loss'], 'epoch', file_name=f'training_error.png'))
+            # trainer.extend(
+            #     extensions.PlotReport(['test/nnPU/error', 'test/uPU/error'], 'epoch', file_name=f'test_error.png'))
             trainer.extend(
-                extensions.PlotReport(['nnPU/loss', 'uPU/loss'], 'epoch', file_name=f'training_error.png'))
+                extensions.PlotReport(['nnPU/loss'], 'epoch', file_name=f'training_error.png'))
             trainer.extend(
-                extensions.PlotReport(['test/nnPU/error', 'test/uPU/error'], 'epoch', file_name=f'test_error.png'))
+                extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name=f'test_error.png'))
     print("prior: {}".format(prior))
     print("loss: {}".format(args.loss))
     print("epoch: {}".format(args.epoch))
@@ -280,9 +290,61 @@ def main():
     # run training
     trainer.run()
     precision, recall, (tn, fp, fn, tp) = get_accuracy(models['nnPU'],testX,testY)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
+    print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
     # print("accuracy on test data",accuracy)
     return precision, recall, (tn, fp, fn, tp)
+
+
+def get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu):
+    batchsize = 100
+    epoch = 100
+    loss = 'sigmoid_cross_entropy'
+    model = 'bass_net'
+    gamma = 1.
+    beta = 0.
+    stepsize = 1e-3
+    out = 'result'
+    dim = XYtrain[0][0].size // len(XYtrain[0][0])
+    channel = XYtrain[0][0].shape[0]
+    # print(XYtrain[0][0].dtype)
+    train_iter = chainer.iterators.SerialIterator(XYtrain, batchsize)
+    test_iter = chainer.iterators.SerialIterator(XYtest, batchsize, repeat=False, shuffle=False)
+
+    loss_type = select_loss(loss)
+    selected_model = select_model(model)
+    model = selected_model(prior, dim, channel, loss)
+    models = {"nnPU": copy.deepcopy(model)}
+    loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name=loss, unlabeled=unlabeled_tag, nnPU=True,
+                       gamma=gamma, beta=beta)}
+    if gpu >= 0:
+        for m in models.values():
+            m.to_gpu(gpu)
+
+    optimizers = {k: make_optimizer(v, stepsize) for k, v in models.items()}
+
+    updater = MultiUpdater(train_iter, optimizers, models, device=gpu, loss_func=loss_funcs)
+    trainer = chainer.training.Trainer(updater, (epoch, 'epoch'), out=out)
+    trainer.extend(extensions.LogReport(trigger=(1, 'epoch')))
+    trainer.extend(MultiEvaluator(test_iter, models, device=gpu))
+    trainer.extend(extensions.ProgressBar())
+    trainer.extend(extensions.PrintReport(
+        ['epoch', 'nnPU/loss', 'test/nnPU/error', 'elapsed_time']))
+    if extensions.PlotReport.available():
+        trainer.extend(
+            extensions.PlotReport(['nnPU/loss'], 'epoch', file_name=f'training_error.png'))
+        trainer.extend(
+            extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name=f'test_error.png'))
+    print("prior: {}".format(prior))
+    print("loss: {}".format(loss))
+    print("epoch: {}".format(epoch))
+    print("batchsize: {}".format(batchsize))
+    print("model: {}".format(selected_model))
+    print("beta: {}".format(beta))
+    print("gamma: {}".format(gamma))
+    trainer.run()
+    return models['nnPU']
+
+
 
 if __name__ == '__main__':
     main()
