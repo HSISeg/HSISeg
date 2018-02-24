@@ -44,6 +44,7 @@ def run():
             (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
             (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type2_data(i , exclude_indices)
             print("training", trainX.shape)
+            print("training split: labelled positive ->", len(train_lp_pos_pixels[0]), "unlabelled positive ->", len(train_up_pos_pixels[0]), "unlabelled negative ->", len(train_neg_pixels[0]))
             print("test", testX.shape)
             model = get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu)
             gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels, exclude_pixels = get_visual_results(target_mat, model, input_mat, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,

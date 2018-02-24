@@ -35,6 +35,7 @@ def run():
             (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
             (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(i , neg_labels_list_i, train_pos_percentage, train_neg_percentage, is_random_neg)
             print("training", trainX.shape)
+            print("training split: labelled positive ->", len(train_lp_pos_pixels[0]), "unlabelled positive ->", len(train_up_pos_pixels[0]), "unlabelled negative ->", len(train_neg_pixels[0]))
             print("test", testX.shape)
             model = get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu)
             input_mat, target_mat = load_data()
