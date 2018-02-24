@@ -37,7 +37,7 @@ class MyClassifier(Chain):
         if self.loss_func_name == "sigmoid_cross_entropy":
             h[xp.where(h >= 0.5)] = 1  # For binary
             h[xp.where(h < 0.5)] = 0  # For binary
-        print(np.unique(h))
+        # print(np.unique(h))
         if isinstance(t, chainer.Variable):
             t = t.data
         result = (h != t).sum() / size

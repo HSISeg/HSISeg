@@ -13,7 +13,7 @@ def load_data():
 def convert_patch_data_points(patch_end_points):
     if patch_end_points is None:
         return None
-    patch_indices = (np.array(dtype='int64'),np.array([],dtype='int64'))
+    patch_indices = (np.array([], dtype='int64'),np.array([],dtype='int64'))
     if patch_end_points[0] != -1 and patch_end_points[1] != -1 and patch_end_points[2] != -1 and patch_end_points[3] != -1:
         row_size = patch_end_points[1] + 1 - patch_end_points[0]
         col_size = patch_end_points[3] + 1 - patch_end_points[2]
@@ -34,14 +34,14 @@ def get_train_PU_data(patch_indices, exclude_indices, target_mat, input_mat, pos
     indx[np.where(target_mat != pos_class)] = False
     train_lp_pos_pixels = np.where(indx == True)
     train_pos_X = input_mat[train_lp_pos_pixels]
-    train_pos_Y = np.full(len(train_lp_pos_pixels[0]), 1)
+    train_pos_Y = np.full(len(train_lp_pos_pixels[0]), 1, dtype=np.int32)
     indx[exclude_indices] = True
     unlb_indx = np.where(indx == False)
     unlb_Y = target_mat[unlb_indx]
     train_up_pos_pixels = (unlb_indx[0][np.where(unlb_Y == pos_class)[0]], unlb_indx[1][np.where(unlb_Y == pos_class)[0]])
     train_neg_pixels = (unlb_indx[0][np.where(unlb_Y != pos_class)[0]], unlb_indx[1][np.where(unlb_Y != pos_class)[0]])
     train_unlb_X = input_mat[unlb_indx]
-    train_unlb_Y = np.full(len(unlb_indx[0]), 0)
+    train_unlb_Y = np.full(len(unlb_indx[0]), 0, dtype=np.int32)
     train_X = np.concatenate((train_pos_X, train_unlb_X), axis=0)
     train_Y = np.concatenate((train_pos_Y, train_unlb_Y), axis=0)
     perm = np.random.permutation(len(train_Y))
@@ -84,6 +84,7 @@ def get_PU_data_by_class(pos_label, exclude_indices):
     patch_end_points = get_patch_points_by_class(pos_label)
     if patch_end_points is None:
         return None, None, None, None, None, None, None, (None, None, None, None)
+    print(patch_end_points)
     patch_indices = convert_patch_data_points(patch_end_points)
     input_mat, target_mat = load_data()
     XYtrain, prior, train_X, train_Y, (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels) = get_train_PU_data(patch_indices, exclude_indices, target_mat, input_mat, pos_label)

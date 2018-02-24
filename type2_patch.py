@@ -42,7 +42,7 @@ def get_patch_by_class(target_mat):
     # print(n_class)
     start_patch_size = int(target_mat.shape[0] * 0.05)
     end_patch_size  = int(target_mat.shape[0] * 0.25)
-    percnt_pos = 20
+    percnt_pos = 30
     for i in range(n_class):
         patch_points = get_type_2_patch(target_mat, percnt_pos, start_patch_size, end_patch_size, i)
         query = '''INSERT INTO PatchClass (class, patch_row_start, patch_row_end, patch_col_start, patch_col_end) VALUES (?, ?, ?, ?, ?) '''

@@ -34,6 +34,8 @@ def run():
                     exclude_list.append(j)
             (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
             (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(i , neg_labels_list_i, train_pos_percentage, train_neg_percentage, is_random_neg)
+            print("training", trainX.shape)
+            print("test", testX.shape)
             model = get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu)
             input_mat, target_mat = load_data()
             gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels, exclude_pixels = get_visual_results(target_mat, model, input_mat, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,
