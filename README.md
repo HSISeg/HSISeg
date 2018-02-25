@@ -48,20 +48,21 @@ Proceedings of The 32nd International Conference on Machine Learning. 2015.
 
 [4] Krizhevsky, Alex, and Geoffrey Hinton. "Learning multiple layers of features from tiny images." (2009).
 
-==================HSI segmentation part=====================
+## ==================HSI segmentation part=====================
 
 
 To run on Indian pines data follow the steps:
 
 Follow them sequentially
 
-1) Install wget, python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
+1) 
+## Install brew, wget with brew(brew install wget --with-libressl), python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
 
 2) run the command to preprocess the data
-    python3 preprocessing_indian_pines.py
+## python3 preprocessing_indian_pines.py
 
 3) create db using the following command
-    python3 schema.py
+## python3 schema.py
 
 TESTS:
 
@@ -100,9 +101,9 @@ When class label 2 is considered as positive class then negative class labels li
 Note: Class labels should be present in groundtooth image
 
 D) is_random_neg : Boolean value to indicate the way of selection for negative unlabelled training data,
-If set to true then all the data from negative class list are accumulated and randomly train_neg_percentage of the total data is selected
-In the above case it might happen that training data might not have any pixel for class k in negative class list
-If set to false then train_neg_percentage pixels of data is randomly selected for each class in negative class list
+If set to true then all the data from negative class list are accumulated and randomly train_neg_percentage of the total data is selected.
+In the above case it might happen that training data might not have any pixel for class k in negative class list.
+If set to false then train_neg_percentage pixels of data is randomly selected for each class in negative class list.
 The above ensures that training data has some pixels of each class in negative class list
 
 E) gpu : Zero-origin GPU ID (negative value indicates CPU)
@@ -112,7 +113,7 @@ Note: For every test the coressponding output is saved in DB. If you want to rer
 
 To run the tests, tune the above parameters and run the following command:
 
-python3 run_type1_test.py
+## python3 run_type1_test.py
 
 The results will be stored in PUstats with test_type='type_1' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
 
@@ -128,7 +129,7 @@ Testing and Training Data: The two types of data are fully-overlapping
 Parameters to tune:
 
 File : type2_patch.py
-percnt_pos : Minimum percentage of total positive pixels that should be present in the patch
+A) percnt_pos : Minimum percentage of total positive pixels that should be present in the patch
 
 Ex: percnt_pos = 30
 For every class [1,2...n] present in the groundtooth image we try of find a patch of size k where 5% of length of image <= k <= 25% of length of image,
@@ -136,7 +137,7 @@ such that the square patch will have atleast 30% pixels of that class. We store 
 
 To preprocess data for testing Type 2 :
 Tune percnt_pos parameter and run the following command
-python3 type2_patch.py
+## python3 type2_patch.py
 
 Running the test:
 
@@ -157,6 +158,6 @@ To run the test:
 
 Tune include_class_list and gpu and run the following command
 
-python3 run_type2_test.py
+## python3 run_type2_test.py
 
 The results will be stored in PUstats with test_type='type_2' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
