@@ -112,6 +112,8 @@ To run the tests, tune the above parameters and run the following command:
 
 python3 run_type1_test.py
 
+The results will be stored in PUstats with test_type='type_1' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
+
 Type 2:
 Positive Class: A positive class labels is selected from a list, spatially closely related pixels are selected from that class for training.
 For a class label j selected as a positive class, a square patch of size k * k is selected which has minimum percnt_pos(described below) pixels of the postive class.
@@ -152,4 +154,7 @@ B) gpu : Zero-origin GPU ID (negative value indicates CPU)
 To run the test:
 
 Tune include_class_list and gpu and run the following command
+
 python3 run_type2_test.py
+
+The results will be stored in PUstats with test_type='type_2' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
