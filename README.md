@@ -55,14 +55,17 @@ To run on Indian pines data follow the steps:
 
 Follow them sequentially
 
-1) 
-## Install brew, wget with brew(brew install wget --with-libressl), python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
+1) Install brew, wget with brew(brew install wget --with-libressl), python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
 
 2) run the command to preprocess the data
-## python3 preprocessing_indian_pines.py
+
+    python3 preprocessing_indian_pines.py
+
 
 3) create db using the following command
-## python3 schema.py
+    
+    python3 schema.py
+
 
 TESTS:
 
@@ -113,7 +116,7 @@ Note: For every test the coressponding output is saved in DB. If you want to rer
 
 To run the tests, tune the above parameters and run the following command:
 
-## python3 run_type1_test.py
+    python3 run_type1_test.py
 
 The results will be stored in PUstats with test_type='type_1' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
 
@@ -137,7 +140,9 @@ such that the square patch will have atleast 30% pixels of that class. We store 
 
 To preprocess data for testing Type 2 :
 Tune percnt_pos parameter and run the following command
-## python3 type2_patch.py
+
+    python3 type2_patch.py
+
 
 Running the test:
 
@@ -158,6 +163,6 @@ To run the test:
 
 Tune include_class_list and gpu and run the following command
 
-## python3 run_type2_test.py
+    python3 run_type2_test.py
 
 The results will be stored in PUstats with test_type='type_2' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
