@@ -145,7 +145,7 @@ def get_PU_data_by_class(pos_label , neg_labels_list, train_pos_percentage, trai
                                                                         n_unlabeled, unlabeled_tag)
 
     # For PN testing will use this data if needed -- to debug
-    PN_trainX, PN_trainY = shuffle_data(np.array(trainX, copy=True), np.array(trainY, copy=True))
-    PN_testX, PN_testY = shuffle_data(np.array(testX, copy=True), np.array(testY, copy=True))
-    PN_XYtrain, PN_XYtest = list(zip(PN_trainX, PN_trainY)), list(zip(PN_testX, PN_testY))
+    # PN_trainX, PN_trainY = shuffle_data(np.array(trainX, copy=True), np.array(trainY, copy=True))
+    # PN_testX, PN_testY = shuffle_data(np.array(testX, copy=True), np.array(testY, copy=True))
+    # PN_XYtrain, PN_XYtest = list(zip(PN_trainX, PN_trainY)), list(zip(PN_testX, PN_testY))
     return (XYtrain, XYtest, prior, testX, testY, trainX, trainY), (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels)

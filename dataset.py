@@ -391,7 +391,6 @@ def load_saved_data(unlabeled_tag):
 
     Y_tr[np.where(Y_tr == 0)] = unlabeled_tag
     Y_te[np.where(Y_te == 0)] = unlabeled_tag
-    # print(Y_tr.shape,"Y_tr.shape",X_tr.shape)
     Y_te = np.reshape(Y_te, (Y_te.shape[0] * Y_te.shape[1]))
     Y_tr = np.reshape(Y_tr, (Y_tr.shape[0] * Y_tr.shape[1]))
     return (X_tr, Y_tr), (X_te, Y_te)
@@ -467,44 +466,32 @@ def binarize_cifar10_class(_trainY, _testY, unlabeled_tag):
 
 def make_dataset(dataset, n_labeled, n_unlabeled, unlabeled_tag):
     def make_PU_dataset_from_binary_dataset(x, y, labeled=n_labeled, unlabeled=n_unlabeled, unlabeled_tag=unlabeled_tag):
-        # print("PU dataset",labeled,unlabeled)
         labels = np.unique(y)
         if labels[0] == unlabeled_tag:
             positive, negative = labels[1], labels[0]
         else:
             positive, negative = labels[0], labels[1]
-        # positive, negative = labels[1], labels[0]
         X, Y = np.asarray(x, dtype=np.float32), np.asarray(y, dtype=np.int32)
-        # print(labeled,unlabeled)
         assert(len(X) == len(Y))
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
         n_p = (Y == positive).sum()
         n_lp = labeled
-        n_n = (Y == negative).sum()
         n_u = unlabeled
         if labeled + unlabeled == len(X):
             n_up = n_p - n_lp
-            # print (n_up,"labeled+unlabeled")
         elif unlabeled == len(X):
             n_up = n_p
         else:
             raise ValueError("Only support |P|+|U|=|X| or |U|=|X|.")
         prior = float(n_up) / float(n_u)
-        # print(prior)
-        # prior = 0.5906844741235392
         Xlp = X[Y == positive][:n_lp]
         Xup = np.concatenate((X[Y == positive][n_lp:], Xlp), axis=0)[:n_up]
         Xun = X[Y == negative]
         X = np.asarray(np.concatenate((Xlp, Xup, Xun), axis=0), dtype=np.float32)
-        # print(X.shape)
-        # Y = np.asarray(np.concatenate((np.ones(n_lp), -np.ones(n_u))), dtype=np.int32)
         Y = np.asarray(np.concatenate((np.ones(n_lp), np.full(n_u, unlabeled_tag))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
-
-        # Y[np.where(Y == -1)] = 0 # For binary
-
         return X, Y, prior
 
     def make_PN_dataset_from_binary_dataset(x, y, unlabeled_tag):
@@ -519,13 +506,9 @@ def make_dataset(dataset, n_labeled, n_unlabeled, unlabeled_tag):
         Xp = X[Y == positive][:n_p]
         Xn = X[Y == negative][:n_n]
         X = np.asarray(np.concatenate((Xp, Xn)), dtype=np.float32)
-        # Y = np.asarray(np.concatenate((np.ones(n_p), -np.ones(n_n))), dtype=np.int32)
         Y = np.asarray(np.concatenate((np.ones(n_p), np.full(n_n, unlabeled_tag))), dtype=np.int32)
         perm = np.random.permutation(len(Y))
         X, Y = X[perm], Y[perm]
-
-        # Y[np.where(Y == -1)] = 0 # For binary
-
         return X, Y
 
     (_trainX, _trainY), (_testX, _testY) = dataset
