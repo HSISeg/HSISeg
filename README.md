@@ -49,6 +49,8 @@ Proceedings of The 32nd International Conference on Machine Learning. 2015.
 [4] Krizhevsky, Alex, and Geoffrey Hinton. "Learning multiple layers of features from tiny images." (2009).
 
 ==================HSI segmentation part=====================
+
+
 To run on Indian pines data follow the steps:
 
 Follow them sequentially
