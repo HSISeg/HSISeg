@@ -16,6 +16,12 @@ Follow them sequentially
     
     ```python3 schema.py```
 
+4) ```python3 run_type1_test.py```
+
+5) ```python3 type2_patch.py```
+
+6) ```python3 run_type2_test.py```
+
 
 TESTS:
 
@@ -66,7 +72,7 @@ Note: For every test the coressponding output is saved in DB. If you want to rer
 
 To run the tests, tune the above parameters and run the following command:
 
-    ```python3 run_type1_test.py```
+    python3 run_type1_test.py
 
 The results will be stored in PUstats with test_type='type_1' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
 
@@ -91,7 +97,7 @@ such that the square patch will have atleast 30% pixels of that class. We store 
 To preprocess data for testing Type 2 :
 Tune percnt_pos parameter and run the following command
 
-    ```python3 type2_patch.py```
+    python3 type2_patch.py
 
 
 Running the test:
@@ -113,6 +119,6 @@ To run the test:
 
 Tune include_class_list and gpu and run the following command
 
-    ```python3 run_type2_test.py```
+    python3 run_type2_test.py
 
 The results will be stored in PUstats with test_type='type_2' and visual results will be saved in results folder, each row in PUstats coressponds to a test with a visual result file name that can be found in the result folder
