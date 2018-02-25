@@ -1,0 +1,14 @@
+Dataset created as mldata/Indian_pines_Binary_Test_patch_3.mat and mldata/Indian_pines_Binary_Full_Train_patch_3.mat
+Now Run PU/PN/multi_class learning on the same dataset
+
+To run PU learning
+
+a) python3 train.py
+
+To run PN
+
+a) python3 PN_learning.py
+
+To run multi_class
+
+a) python3 multi_class.py

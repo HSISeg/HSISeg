@@ -47,7 +47,10 @@ def get_train_PU_data(patch_indices, exclude_indices, target_mat, input_mat, pos
     perm = np.random.permutation(len(train_Y))
     train_X, train_Y = train_X[perm], train_Y[perm]
     XYtrain = list(zip(train_X, train_Y))
-    prior = 0.5
+    prior = float(len(train_up_pos_pixels[0])) / (float(len(train_up_pos_pixels[0])) + float(len(train_neg_pixels[0])))
+    if prior == 0:
+        prior = 0.5
+    print("prior", prior)
     return XYtrain, prior, train_X, train_Y, (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels)
 
 
@@ -84,7 +87,7 @@ def get_PU_data_by_class(pos_label, exclude_indices):
     patch_end_points = get_patch_points_by_class(pos_label)
     if patch_end_points is None:
         return None, None, None, None, None, None, None, (None, None, None, None)
-    print(patch_end_points)
+    # print(patch_end_points)
     patch_indices = convert_patch_data_points(patch_end_points)
     input_mat, target_mat = load_data()
     XYtrain, prior, train_X, train_Y, (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels) = get_train_PU_data(patch_indices, exclude_indices, target_mat, input_mat, pos_label)

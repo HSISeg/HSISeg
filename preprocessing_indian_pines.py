@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.ndimage
 import scipy.io as io
+import os
 
 PATCH_SIZE = 3
 data = "Indian_pines"
@@ -12,38 +13,17 @@ url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
 # parser.add_argument('--patch_size', type=int, default=3)
 # opt = parser.parse_args()
 
-# if opt.data == "Indian_pines":
-#     opt.url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
-#     opt.url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
-# elif opt.data == "Salinas":
-#     opt.url1 = "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat"
-#     opt.url2 = "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat"
-# elif opt.data == "PaviaU":
-#     opt.url1 = "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat"
-#     opt.url2 = "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat"
-
-##loading images for input and target image
-# try:
-#     input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
-#     target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
-# except:
-#     os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url1)
-#     os.system('wget' + ' mldata/' + opt.data + '.mat' + ' ' + opt.url2)
-#     input_mat = io.loadmat('mldata/' + opt.data + '.mat')[opt.data.lower()]
-#     target_mat = io.loadmat('mldata/' + opt.data + '_gt.mat')[opt.data.lower() + '_gt']
-
 def load_data():
-    # try:
-    #     input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-    #     target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
-    # except:
-    #     os.system('wget' + ' mldata/' + data + '.mat' + ' ' + url1)
-    #     os.system('wget' + ' mldata/' + data + '.mat' + ' ' + url2)
-    #     input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-    #     target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
-    input_mat = io.loadmat("Indian_pines.mat")[data.lower()]
-    target_mat = io.loadmat("Indian_pines_gt.mat")[data.lower() + '_gt']
+    try:
+        input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
+        target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
+    except:
+        os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url1)
+        os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url2)
+        input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
+        target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
+    input_mat = np.asarray(input_mat, dtype=np.float32)
     return input_mat, target_mat
 
 
@@ -62,7 +42,6 @@ def Patch(height_index, width_index, MEAN_ARRAY, input_mat):
     """
     #     transpose_array = np.transpose(input_mat,(2,0,1))
     transpose_array = input_mat
-    #     print input_mat.shape
     height_slice = slice(height_index, height_index + PATCH_SIZE)
     width_slice = slice(width_index, width_index + PATCH_SIZE)
     patch = transpose_array[:, height_slice, width_slice]
@@ -73,7 +52,7 @@ def Patch(height_index, width_index, MEAN_ARRAY, input_mat):
     return np.array(mean_normalized_patch)
 
 def preprocess_data(input_mat, target_mat):
-    print("input_mat dimensions",input_mat.shape)
+    # print("input_mat dimensions",input_mat.shape)
     HEIGHT = input_mat.shape[0]
     WIDTH = input_mat.shape[1]
     BAND = input_mat.shape[2]
@@ -84,7 +63,7 @@ def preprocess_data(input_mat, target_mat):
     MEAN_ARRAY = np.ndarray(shape=(BAND,), dtype=np.float64)
     new_input_mat = []
     input_mat = np.transpose(input_mat, (2, 0, 1))
-    print(input_mat.shape)
+    # print(input_mat.shape)
     for i in range(BAND):
         MEAN_ARRAY[i] = np.mean(input_mat[i, :, :])
         try:
@@ -93,7 +72,7 @@ def preprocess_data(input_mat, target_mat):
             print(str(e))
             new_input_mat = input_mat
 
-    print(np.array(new_input_mat).shape)
+    # print(np.array(new_input_mat).shape)
 
     input_mat = np.array(new_input_mat)
 
@@ -109,10 +88,12 @@ def preprocess_data(input_mat, target_mat):
 
 def run_preprocessing():
     input_mat, target_mat = load_data()
+    print("preprocessing data ....")
     preprocessed_img = preprocess_data(input_mat, target_mat)
     preprocessed_data = {}
     preprocessed_img = np.asarray(preprocessed_img, dtype=np.float32)
     target_mat = np.asarray(target_mat, dtype=np.int32)
+    print("saving data ....")
     preprocessed_data["preprocessed_img"] = preprocessed_img
     preprocessed_data["preprocessed_gt"] = target_mat
     scipy.io.savemat("mldata/" + data + "_Preprocessed_patch_" + str(PATCH_SIZE) + ".mat", preprocessed_data)

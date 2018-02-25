@@ -136,7 +136,6 @@ def get_PU_data_by_class(pos_label , neg_labels_list, train_pos_percentage, trai
         return None, None, None, None, None, None, None, (train_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels)
     trainX, trainY = get_PN_data(train_pos_pixels, train_neg_pixels, input_mat, 1, 0)
     testX, testY = get_PN_data(test_pos_pixels, test_neg_pixels, input_mat, 1, 0)
-    print(trainX, testX)
     # 60 % labelled out of positive samples in training
     n_labeled = (len(train_pos_pixels[0]) * 6) // 10
     n_unlabeled = len(train_pos_pixels[0]) - n_labeled + len(train_neg_pixels[0])
