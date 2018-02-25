@@ -36,7 +36,7 @@ def run():
         neg_labels_list.remove(pos_class)
         if len(neg_labels_list) > 0:
             exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
-            if check_if_test_done(pos_class, 'type_2', neg_labels_list):
+            if not check_if_test_done(pos_class, 'type_2', neg_labels_list):
                 input_mat, target_mat = load_data()
                 exclude_indices = get_indices_from_list(target_mat, exclude_list)
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
@@ -49,7 +49,7 @@ def run():
                 train_neg_pixels, test_pos_pixels, test_neg_pixels, exclude_pixels, (precision, recall, tp, tn, fp, fn ) = gen_visual_results_data(target_mat, model,\
                             input_mat, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,
                                test_pos_pixels, test_neg_pixels)
-                visual_result_filename = "result/type_2_test_" + str(i) + "_pos_" + str(datetime.datetime.now().timestamp() * 1000) + ".png"
+                visual_result_filename = "result/type_2_test_" + str(pos_class) + "_pos_" + str(datetime.datetime.now().timestamp() * 1000) + ".png"
                 generate_and_save_visualizations(gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels,
                                                  train_neg_pixels, test_pos_pixels, test_neg_pixels, \
                                                  exclude_pixels, visual_result_filename )

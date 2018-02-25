@@ -43,7 +43,7 @@ def run():
         neg_labels_list.remove(pos_class)
         if len(neg_labels_list) > 0:
             exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
-            if check_if_test_done(pos_class, 'type_1', neg_labels_list):
+            if not check_if_test_done(pos_class, 'type_1', neg_labels_list):
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
                 (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(pos_class , neg_labels_list, train_pos_percentage, train_neg_percentage, is_random_neg)
                 print("training", trainX.shape)
