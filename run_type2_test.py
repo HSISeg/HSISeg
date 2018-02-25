@@ -31,21 +31,16 @@ def get_indices_from_list(target_mat, indices_list):
 def run():
     unlabeled_tag = 0
     n_class = 17
-    neg_labels_list = list(set(include_class_list))
-    for i in include_class_list:
-        neg_labels_list_i = copy.copy(neg_labels_list)
-        if i in neg_labels_list_i:
-            neg_labels_list_i.remove(i)
-        if len(neg_labels_list_i) > 0 and i != 0:
-            exclude_list = []
-            for j in range(n_class):
-                if j !=i and j not in neg_labels_list:
-                    exclude_list.append(j)
-            if not check_if_test_done(i, 'type_2', neg_labels_list_i):
+    for pos_class in include_class_list:
+        neg_labels_list = copy.copy(list(set(include_class_list)))
+        neg_labels_list.remove(pos_class)
+        if len(neg_labels_list) > 0:
+            exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
+            if check_if_test_done(pos_class, 'type_2', neg_labels_list):
                 input_mat, target_mat = load_data()
                 exclude_indices = get_indices_from_list(target_mat, exclude_list)
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
-                (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type2_data(i , exclude_indices)
+                (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type2_data(pos_class , exclude_indices)
                 print("training", trainX.shape)
                 print("training split: labelled positive ->", len(train_lp_pos_pixels[0]), "unlabelled positive ->", len(train_up_pos_pixels[0]), "unlabelled negative ->", len(train_neg_pixels[0]))
                 print("test", testX.shape)
@@ -59,7 +54,7 @@ def run():
                                                  train_neg_pixels, test_pos_pixels, test_neg_pixels, \
                                                  exclude_pixels, visual_result_filename )
                 save_data_in_PUstats((
-                    str(i), ",".join([str(i) for i in neg_labels_list_i]), precision, recall, tp,
+                    str(pos_class), ",".join([str(i) for i in neg_labels_list]), precision, recall, tp,
                     tn, fp, fn, 'type_2', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pos_pixels[0])),
                     int(len(train_up_pos_pixels[0])), int(len(train_neg_pixels[0])), visual_result_filename))
                 # pickle_data = {}

@@ -51,11 +51,11 @@ def process_args():
     # 1679
     # 7000
     # 279
-    parser.add_argument('--unlabeled', '-u', default=279, type=int,
+    parser.add_argument('--unlabeled', '-u', default=1679, type=int,
                         help='# of unlabeled data')
     parser.add_argument('--unlabeled_tag', '-ut', default=0, type=int,
                         help=' tag of unlabeled data')
-    parser.add_argument('--epoch', '-e', default=30, type=int,
+    parser.add_argument('--epoch', '-e', default=100, type=int,
                         help='# of epochs to learn')
     parser.add_argument('--beta', '-B', default=0., type=float,
                         help='Beta parameter of nnPU')

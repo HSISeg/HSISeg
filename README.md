@@ -81,8 +81,10 @@ File : run_type1_test.py
 A) train_pos_percentage : Percentage of pixels from total pixels of positive class that will be included in training, 60% of training positive pixels will be labelled in PU learning
 
 Ex: According to groundtooth image for class label k no of pixels  = 1057
+
 train_pos_percentage = 30
-then randomly (1057 * 30)//100 = 317 pixels will be selected for PU training out of which 190 pixels will be labelled and rest 127 unlabelled, rest 740 pixels will be used for testing
+
+Then randomly (1057 * 30)//100 = 317 pixels will be selected for PU training out of which 190 pixels will be labelled and rest 127 unlabelled, rest 740 pixels will be used for testing
 
 B) train_neg_percentage : Percentage of pixels from total pixels of negative class list (include_class_list - positive_class) that will be included in training
 

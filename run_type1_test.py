@@ -38,19 +38,14 @@ def load_data():
 def run():
     unlabeled_tag = 0
     n_class = 17
-    neg_labels_list = list(set(include_class_list))
-    for i in include_class_list:
-        neg_labels_list_i = copy.copy(neg_labels_list)
-        if i in neg_labels_list_i:
-            neg_labels_list_i.remove(i)
-        if len(neg_labels_list_i) > 0 and i != 0:
-            exclude_list = []
-            for j in range(n_class):
-                if j !=i and j not in neg_labels_list:
-                    exclude_list.append(j)
-            if check_if_test_done(i, 'type_1', neg_labels_list_i):
+    for pos_class in include_class_list:
+        neg_labels_list = copy.copy(list(set(include_class_list)))
+        neg_labels_list.remove(pos_class)
+        if len(neg_labels_list) > 0:
+            exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
+            if check_if_test_done(pos_class, 'type_1', neg_labels_list):
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
-                (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(i , neg_labels_list_i, train_pos_percentage, train_neg_percentage, is_random_neg)
+                (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(pos_class , neg_labels_list, train_pos_percentage, train_neg_percentage, is_random_neg)
                 print("training", trainX.shape)
                 print("training split: labelled positive ->", len(train_lp_pos_pixels[0]), "unlabelled positive ->", len(train_up_pos_pixels[0]), "unlabelled negative ->", len(train_neg_pixels[0]))
                 print("test", testX.shape)
@@ -60,12 +55,11 @@ def run():
                 test_pos_pixels, test_neg_pixels, exclude_pixels, (precision, recall, tp, tn, fp, fn ) = gen_visual_results_data(target_mat, model, input_mat,\
                                                                                                                                  train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,
                                test_pos_pixels, test_neg_pixels)
-                # , 'type_1', i, neg_labels_list_i, exclude_list)
-                visual_result_filename = "result/type_1_test_" + str(i) + "_pos_"+ str(datetime.datetime.now().timestamp() * 1000) +".png"
+                visual_result_filename = "result/type_1_test_" + str(pos_class) + "_pos_"+ str(datetime.datetime.now().timestamp() * 1000) +".png"
                 generate_and_save_visualizations(gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels, \
                                                  exclude_pixels, visual_result_filename)
                 save_data_in_PUstats((
-                                     str(i), ",".join([str(i) for i in neg_labels_list_i]), precision, recall, tp,
+                                     str(pos_class), ",".join([str(i) for i in neg_labels_list]), precision, recall, tp,
                                      tn, fp, fn, 'type_1', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pos_pixels[0])),
                                      int(len(train_up_pos_pixels[0])), int(len(train_neg_pixels[0])), visual_result_filename))
                 # pickle_data = {}
