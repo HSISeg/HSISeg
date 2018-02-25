@@ -55,7 +55,7 @@ To run on Indian pines data follow the steps:
 
 Follow them sequentially
 
-1) Install brew, wget with brew(brew install wget --with-libressl), python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
+1) Install wget, python3 and pip3, create a virtualenv,  install all dependencies using pip3(in the virtualenv) from requirements.txt
 
 2) run the command to preprocess the data
     python3 preprocessing_indian_pines.py
