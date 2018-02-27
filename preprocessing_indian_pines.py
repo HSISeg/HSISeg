@@ -19,7 +19,7 @@ def load_data():
         target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
     except:
         os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url1)
-        os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url2)
+        os.system('wget' + ' -O mldata/' + data + '_gt.mat' + ' ' + url2)
         input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
         target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
