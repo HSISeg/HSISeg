@@ -23,6 +23,7 @@ def get_test_train_PN_pixel(CLASSES, pos_label , neg_labels_list, train_pos_perc
         return None, None, None, None
     n_pos_pixels = len(CLASSES[pos_label][0])
     train_n_pos_pixels = (n_pos_pixels * train_pos_percentage) // 100
+    # train_n_pos_pixels = 200
     if train_n_pos_pixels == 0:
         return None, None, None, None
     if pos_label in neg_labels_list:
@@ -38,7 +39,8 @@ def get_test_train_PN_pixel(CLASSES, pos_label , neg_labels_list, train_pos_perc
                 neg_pixels = (np.concatenate((CLASSES[neg_labels_list[i]][0], neg_pixels[0])), np.concatenate((CLASSES[neg_labels_list[i]][1], neg_pixels[1])))
         if len(neg_pixels[0]) == 0:
             return  None, None, None, None
-        train_n_neg_pixels = (len(neg_pixels[0]) * train_neg_percentage) // 100
+        train_n_neg_pixels = train_n_pos_pixels
+        # train_n_neg_pixels = (len(neg_pixels[0]) * train_neg_percentage) // 100
         if train_n_neg_pixels == 0:
             return None, None, None, None
         indx = np.random.permutation(len(neg_pixels[0]))
@@ -48,9 +50,10 @@ def get_test_train_PN_pixel(CLASSES, pos_label , neg_labels_list, train_pos_perc
     else:
         test_neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
         train_neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
+        train_n_neg_pixels_class = train_n_pos_pixels // len(neg_labels_list)
         for i in range(len(neg_labels_list)):
             if len(CLASSES[neg_labels_list[i]][0]) > 0:
-                train_n_neg_pixels_class = (len(CLASSES[neg_labels_list[i]][0]) *  train_neg_percentage) // 100
+                # train_n_neg_pixels_class = (len(CLASSES[neg_labels_list[i]][0]) *  train_neg_percentage) // 100
                 if train_n_neg_pixels_class > 0:
                     indx = np.random.permutation(len(CLASSES[neg_labels_list[i]][0]))
                     train_neg_pixels = (np.concatenate((train_neg_pixels[0], CLASSES[neg_labels_list[i]][0][indx[:train_n_neg_pixels_class]] )),

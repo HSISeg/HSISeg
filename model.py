@@ -3,6 +3,7 @@ import chainer.functions as F
 import chainer.links as L
 import numpy as np
 from chainer import Chain, cuda
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 
 
 class MyClassifier(Chain):
@@ -41,7 +42,9 @@ class MyClassifier(Chain):
         if isinstance(t, chainer.Variable):
             t = t.data
         result = (h != t).sum() / size
-        chainer.reporter.report({'error': result}, self)
+        precision, recall, _, _ = precision_recall_fscore_support(t, h, pos_label=1, average='binary')
+        # print("precision, recall", precision, recall)
+        chainer.reporter.report({'error': result,'precision':precision,'recall':recall}, self)
         return cuda.to_cpu(result) if xp != np else result
 
 

@@ -26,7 +26,6 @@ is_random_neg = False
 # Zero-origin GPU ID (negative value indicates CPU)
 gpu = -1
 
-
 def load_data():
     input_mat = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_img']
     target_mat = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_gt']
@@ -43,7 +42,7 @@ def run():
         neg_labels_list.remove(pos_class)
         if len(neg_labels_list) > 0:
             exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
-            if not check_if_test_done(pos_class, 'type_1', neg_labels_list):
+            if not check_if_test_done(pos_class, 'type_1_equal', neg_labels_list):
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
                 (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type1_data(pos_class , neg_labels_list, train_pos_percentage, train_neg_percentage, is_random_neg)
                 print("training", trainX.shape)
@@ -55,12 +54,12 @@ def run():
                 test_pos_pixels, test_neg_pixels, exclude_pixels, (precision, recall, tp, tn, fp, fn ) = gen_visual_results_data(target_mat, model, input_mat,\
                                                                                                                                  train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,
                                test_pos_pixels, test_neg_pixels)
-                visual_result_filename = "result/type_1_test_" + str(pos_class) + "_pos_"+ str(datetime.datetime.now().timestamp() * 1000) +".png"
+                visual_result_filename = "result/type_1_equal_test_" + str(pos_class) + "_pos_"+ str(datetime.datetime.now().timestamp() * 1000) +".png"
                 generate_and_save_visualizations(gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels, \
                                                  exclude_pixels, visual_result_filename)
                 save_data_in_PUstats((
                                      str(pos_class), ",".join([str(i) for i in neg_labels_list]), precision, recall, tp,
-                                     tn, fp, fn, 'type_1', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pos_pixels[0])),
+                                     tn, fp, fn, 'type_1_equal', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pos_pixels[0])),
                                      int(len(train_up_pos_pixels[0])), int(len(train_neg_pixels[0])), visual_result_filename))
                 # pickle_data = {}
                 # pickle_data['gt_img'] = gt_img
