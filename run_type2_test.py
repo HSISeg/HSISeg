@@ -1,74 +1,54 @@
-from type_2_test_train import  get_PU_data_by_class as get_type2_data
+from type_2_dataset import  get_PU_data as get_type2_data
 from train import get_PU_model
-from visual_data_format import gen_visual_results_data, save_data_in_PUstats, check_if_test_done
+import utils
 import numpy as np
-import scipy.io as io
 import copy
-import pickle, datetime
+import datetime
 from visual_results import generate_and_save_visualizations
-
-# class label included in this test, negative class  = list(set(include_class_list) - set(positive_class))
-# Note: Class labels should be present in groundtooth image
-# include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
-# Zero-origin GPU ID (negative value indicates CPU)
-gpu = -1
-
-def load_data():
-    input_mat = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_img']
-    target_mat = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_gt']
-    target_mat = np.asarray(target_mat, dtype=np.int32)
-    input_mat = np.asarray(input_mat, dtype=np.float32)
-    return input_mat, target_mat
-
-def get_indices_from_list(target_mat, indices_list):
-    indx = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
-    for i in indices_list:
-        indx_i = np.where(target_mat == i)
-        indx = (np.concatenate((indx[0], indx_i[0]), axis=0), np.concatenate((indx[1], indx_i[1]), axis=0))
-    return indx
+import Config
 
 def run():
-    unlabeled_tag = 0
-    n_class = 17
+    include_class_list = Config.type_2_include_class_list
     for pos_class in include_class_list:
-        neg_labels_list = copy.copy(list(set(include_class_list)))
-        neg_labels_list.remove(pos_class)
-        if len(neg_labels_list) > 0:
-            exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
-            if not check_if_test_done(pos_class, 'type_2', neg_labels_list):
-                input_mat, target_mat = load_data()
-                exclude_indices = get_indices_from_list(target_mat, exclude_list)
+        neg_class_list = copy.copy(list(set(include_class_list)))
+        neg_class_list.remove(pos_class)
+        if len(neg_class_list) > 0:
+            if not utils.check_if_test_done(pos_class, 'type_1', ",".join([str(i) for i in neg_class_list])):
+                data_img, labelled_img = utils.load_preprocessed_data()
+                n_class = np.max(labelled_img) + 1
+                exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY), \
-                (train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels) = get_type2_data(pos_class , exclude_indices)
+                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_type2_data([pos_class], neg_class_list, data_img, labelled_img)
                 print("training", trainX.shape)
-                print("training split: labelled positive ->", len(train_lp_pos_pixels[0]), "unlabelled positive ->", len(train_up_pos_pixels[0]), "unlabelled negative ->", len(train_neg_pixels[0]))
+                print("training split: labelled positive ->", len(train_lp_pixels[0]), "unlabelled positive ->",
+                      len(train_up_pixels[0]), "unlabelled negative ->", len(train_un_pixels[0]))
                 print("test", testX.shape)
-                model = get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu)
-                gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels, \
-                train_neg_pixels, test_pos_pixels, test_neg_pixels, exclude_pixels, (precision, recall, tp, tn, fp, fn ) = gen_visual_results_data(target_mat, model,\
-                            input_mat, train_lp_pos_pixels, train_up_pos_pixels, train_neg_pixels,
-                               test_pos_pixels, test_neg_pixels)
-                visual_result_filename = "result/type_2_test_" + str(pos_class) + "_pos_" + str(datetime.datetime.now().timestamp() * 1000) + ".png"
-                generate_and_save_visualizations(gt_img, predicted_img, train_lp_pos_pixels, train_up_pos_pixels,
-                                                 train_neg_pixels, test_pos_pixels, test_neg_pixels, \
-                                                 exclude_pixels, visual_result_filename )
-                save_data_in_PUstats((
-                    str(pos_class), ",".join([str(i) for i in neg_labels_list]), precision, recall, tp,
-                    tn, fp, fn, 'type_2', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pos_pixels[0])),
-                    int(len(train_up_pos_pixels[0])), int(len(train_neg_pixels[0])), visual_result_filename))
-                # pickle_data = {}
-                # pickle_data['gt_img'] = gt_img
-                # pickle_data['predicted_img'] = predicted_img
-                # pickle_data['train_lp_pos_pixels'] = train_lp_pos_pixels
-                # pickle_data['train_up_pos_pixels'] = train_up_pos_pixels
-                # pickle_data['train_un_pixels'] = train_neg_pixels
-                # pickle_data['test_pos_pixels'] = test_pos_pixels
-                # pickle_data['test_neg_pixels'] = test_neg_pixels
-                # pickle_data['exclude_pixels'] = exclude_pixels
-                # with open("result/type_2_test_" + str(i) + "_pos.pickle", "wb") as fp:
-                #     pickle.dump(pickle_data, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
+                model = get_PU_model(XYtrain, XYtest, prior)
+
+                # generate predicted and groundtooth image
+                exclude_pixels = utils.get_excluded_pixels(labelled_img, train_lp_pixels, train_up_pixels,
+                                                           train_un_pixels, test_pos_pixels, test_neg_pixels)
+                gt_img = utils.get_binary_gt_img(labelled_img, train_lp_pixels, train_up_pixels, train_un_pixels,
+                                                 test_pos_pixels, test_neg_pixels, exclude_pixels)
+                predicted_img, predicted_output = utils.get_binary_predicted_image(labelled_img, model, testX,
+                                                                                   train_lp_pixels, train_up_pixels,
+                                                                                   train_un_pixels,
+                                                                                   shuffled_test_pixels, exclude_pixels)
+
+                # get model stats
+                precision, recall, (tn, fp, fn, tp) = utils.get_model_stats(predicted_output, testY)
+
+                visual_result_filename = "result/type_2_test_" + str(pos_class) + "_pos_" + str(
+                    datetime.datetime.now().timestamp() * 1000) + ".png"
+                generate_and_save_visualizations(gt_img, predicted_img, train_lp_pixels, train_up_pixels,
+                                                 train_un_pixels, test_pos_pixels, test_neg_pixels, \
+                                                 exclude_pixels, visual_result_filename)
+
+                utils.save_data_in_PUstats((
+                    str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
+                    tn, fp, fn, 'type_2', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
+                    int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, None, None))
 
 
 if __name__ == '__main__':

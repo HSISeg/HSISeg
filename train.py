@@ -1,10 +1,8 @@
 import six
 import copy
-import argparse
 import chainer
-import numpy as np
-from chainer import Chain, cuda
-from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+import Config
+
 
 try:
     from matplotlib import use
@@ -14,97 +12,8 @@ except ImportError:
 
 from chainer import Variable, functions as F
 from chainer.training import extensions
-from model import LinearClassifier, ThreeLayerPerceptron, MultiLayerPerceptron, CNN, BassNet
+from model import MultiLayerPerceptron, CNN, BassNet
 from pu_loss import PULoss
-from dataset import load_dataset
-
-
-
-def process_args():
-    parser = argparse.ArgumentParser(
-        description='non-negative / unbiased PU learning Chainer implementation',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # parser.add_argument('--batchsize', '-b', type=int, default=10000,
-    #                     help='Mini batch size')
-    parser.add_argument('--batchsize', '-b', type=int, default=100,
-                        help='Mini batch size')
-    # parser.add_argument('--gpu', '-g', type=int, default=-1,
-    #                     help='Zero-origin GPU ID (negative value indicates CPU)')
-    parser.add_argument('--gpu', '-g', type=int, default=-1,
-                        help='Zero-origin GPU ID (negative value indicates CPU)')
-    parser.add_argument('--preset', '-p', type=str, default=None,
-                        choices=['figure1', 'exp-mnist', 'exp-cifar'],
-                        help="Preset of configuration\n"+
-                             "figure1: The setting of Figure1\n"+
-                             "exp-mnist: The setting of MNIST experiment in Experiment\n"+
-                             "exp-cifar: The setting of CIFAR10 experiment in Experiment")
-    # parser.add_argument('--dataset', '-d', default='mnist', type=str, choices=['mnist', 'cifar10','indian_pines'],
-    #                     help='The dataset name')
-    parser.add_argument('--dataset', '-d', default='indian_pines', type=str, choices=['mnist', 'cifar10', 'indian_pines','custom'],
-                        help='The dataset name')
-    # parser.add_argument('--labeled', '-l', default=100, type=int,
-    #                     help='# of labeled data')
-    parser.add_argument('--labeled', '-l', default=121, type=int,
-                        help='# of labeled data')
-    # parser.add_argument('--unlabeled', '-u', default=59900, type=int,
-    #                     help='# of unlabeled data')
-    # 1679
-    # 7000
-    # 279
-    parser.add_argument('--unlabeled', '-u', default=1679, type=int,
-                        help='# of unlabeled data')
-    parser.add_argument('--unlabeled_tag', '-ut', default=0, type=int,
-                        help=' tag of unlabeled data')
-    parser.add_argument('--epoch', '-e', default=100, type=int,
-                        help='# of epochs to learn')
-    parser.add_argument('--beta', '-B', default=0., type=float,
-                        help='Beta parameter of nnPU')
-    parser.add_argument('--gamma', '-G', default=1., type=float,
-                        help='Gamma parameter of nnPU')
-    parser.add_argument('--loss', type=str, default="sigmoid_cross_entropy", choices=['logistic', 'sigmoid','sigmoid_cross_entropy'],
-                        help='The name of a loss function')
-    # parser.add_argument('--model', '-m', default='3lp', choices=['linear', '3lp', 'mlp'],
-    #                     help='The name of a classification model')
-    parser.add_argument('--model', '-m', default='bass_net', choices=['linear', '3lp', 'mlp','cnn','bass_net'],
-                        help='The name of a classification model')
-    parser.add_argument('--stepsize', '-s', default=1e-3, type=float,
-                        help='Stepsize of gradient method')
-    parser.add_argument('--out', '-o', default='result',
-                        help='Directory to output the result')
-    args = parser.parse_args()
-    print(args.gpu,"gpu" )
-    if args.gpu >= 0:
-        chainer.cuda.check_cuda_available()
-        chainer.cuda.get_device_from_id(args.gpu).use()
-    if args.preset == "figure1":
-        args.labeled = 100
-        args.unlabeled = 59900
-        args.dataset = "mnist"
-        args.batchsize = 30000
-        args.model = "3lp"
-    elif args.preset == "exp-mnist":
-        args.labeled = 1000
-        args.unlabeled = 60000
-        args.dataset = "mnist"
-        args.batchsize = 30000
-        args.model = "mlp"
-    elif args.preset == "exp-cifar":
-        args.labeled = 1000
-        args.unlabeled = 50000
-        args.dataset = "cifar10"
-        args.batchsize = 500
-        args.model = "cnn"
-        args.stepsize = 1e-5
-    assert (args.batchsize > 0)
-    assert (args.epoch > 0)
-    assert (0 < args.labeled < 30000)
-    if args.dataset == "mnist":
-        assert (0 < args.unlabeled <= 60000)
-    else:
-        assert ( 0 < args.unlabeled <= 50000)
-    assert (0. <= args.beta)
-    assert (0. <= args.gamma <= 1.)
-    return args
 
 
 def select_loss(loss_name):
@@ -113,8 +22,7 @@ def select_loss(loss_name):
 
 
 def select_model(model_name):
-    models = {"linear": LinearClassifier, "3lp": ThreeLayerPerceptron,
-              "mlp": MultiLayerPerceptron, "cnn": CNN,"bass_net":BassNet}
+    models = {"mlp": MultiLayerPerceptron, "cnn": CNN,"bass_net":BassNet}
     return models[model_name]
 
 
@@ -184,138 +92,20 @@ class MultiEvaluator(chainer.training.extensions.Evaluator):
                     in_vars = Variable(in_arrays)
                     for k, target in targets.items():
                         target.error(in_vars)
-                # print("observation",observation)
             summary.add(observation)
-        # print("summary.compute_mean()",summary.compute_mean())
         return summary.compute_mean()
 
-def get_accuracy(model,x,t):
-    # print("x.shape",x.shape)
-    xp = cuda.get_array_module(x, False)
-    size = len(t)
-    with chainer.no_backprop_mode():
-        with chainer.using_config("train", False):
-            # h = xp.reshape(xp.sign(model.calculate(x).data), size)
-            h = xp.reshape(F.sigmoid(model.calculate(x)).data, size) # For binary
-    if isinstance(h, chainer.Variable):
-        h = h.data
-
-    h[np.where(h >= 0.5)] = 1 # For binary
-    h[np.where(h < 0.5)] = 0 # For binary
-
-    if isinstance(t, chainer.Variable):
-        t = t.data
-    # average_precision = average_precision_score(t, h)
-    try:
-        precision, recall, _, _ = precision_recall_fscore_support(t, h, pos_label = 1, average='binary')
-        # print("precision",precision, "recall", recall)
-    except:
-        precision, recall = 0.0, 0.0
-    # print()
-    # negative, positive = np.unique(t)
-    # positive_data = t == positive
-    # n_positive = positive_data.sum()
-    # n_negative = size - n_positive
-    # n_positive_match = (h[positive_data] == t[positive_data]).sum()
-    # n_negative_match = (h[np.logical_not(positive_data)] == t[np.logical_not(positive_data)]).sum()
-    # print("n_positive_test", n_positive, "n_negative_test", n_negative, np.unique(h), n_positive_match, n_negative_match)
-    # accuracy = (h == t).sum() / size
-    # print(model.l7.W,"l7_Weight")
-    # print("accuracy",accuracy)
-
-    tn, fp, fn, tp = confusion_matrix(t, h).ravel()
-    # print("precision", precision, "recall", recall)
-    return precision, recall, (tn, fp, fn, tp)
-
-def main():
-    args = process_args()
-    # dataset setup
-    print("In default main")
-    XYtrain, XYtest, prior, testX, testY, trainX, trainY = load_dataset(args.dataset, args.labeled, args.unlabeled, args.unlabeled_tag)
-    # print(len(XYtrain), len(XYtrain[0]), XYtrain[0][1], XYtrain[0][0].size, len(XYtrain[0][0]))
-    dim = XYtrain[0][0].size // len(XYtrain[0][0])
-    channel = XYtrain[0][0].shape[0]
-    # print(dim, args.batchsize,args.loss,args.model,XYtrain[0][0].size)
-    train_iter = chainer.iterators.SerialIterator(XYtrain, args.batchsize)
-    # print(train_iter.next())
-    test_iter = chainer.iterators.SerialIterator(XYtest, args.batchsize, repeat=False, shuffle=False)
-
-    # model setup
-    loss_type = select_loss(args.loss)
-    selected_model = select_model(args.model)
-    model = selected_model(prior, dim, channel, args.loss)
-    # print("loss_type",loss_type)
-    # models = {"nnPU": copy.deepcopy(model), "uPU": copy.deepcopy(model)}
-    models = {"nnPU": copy.deepcopy(model)}
-    # loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled = args.unlabeled_tag, nnPU=True, gamma=args.gamma, beta=args.beta),
-                  # "uPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled=args.unlabeled_tag, nnPU=False)}
-    loss_funcs = {
-        "nnPU": PULoss(prior, loss=loss_type, loss_func_name=args.loss, unlabeled=args.unlabeled_tag, nnPU=True,
-                       gamma=args.gamma, beta=args.beta)}
-    # loss_funcs = {"nnPU": PULoss(prior, loss=loss_type, loss_func_name = args.loss, unlabeled=args.unlabeled_tag, nnPU=False) }
-    if args.gpu >= 0:
-        for m in models.values():
-            m.to_gpu(args.gpu)
-
-    # trainer setup
-    optimizers = {k: make_optimizer(v, args.stepsize) for k, v in models.items()}
-    # print(optimizers,"optimizers")
-    # print(models,"models")
-    updater = MultiUpdater(train_iter, optimizers, models, device=args.gpu, loss_func=loss_funcs)
-    trainer = chainer.training.Trainer(updater, (args.epoch, 'epoch'), out=args.out)
-    trainer.extend(extensions.LogReport(trigger=(1, 'epoch')))
-    trainer.extend(MultiEvaluator(test_iter, models, device=args.gpu))
-    trainer.extend(extensions.ProgressBar())
-    # trainer.extend(extensions.PrintReport(
-                # ['epoch', 'nnPU/loss', 'test/nnPU/error', 'uPU/loss', 'test/uPU/error', 'elapsed_time']))
-    trainer.extend(extensions.PrintReport(
-        ['epoch', 'nnPU/loss', 'test/nnPU/error','test/nnPU/precision', 'test/nnPU/recall', 'elapsed_time']))
-    if extensions.PlotReport.available():
-            # trainer.extend(
-            #     extensions.PlotReport(['nnPU/loss', 'uPU/loss'], 'epoch', file_name=f'training_error.png'))
-            # trainer.extend(
-            #     extensions.PlotReport(['test/nnPU/error', 'test/uPU/error'], 'epoch', file_name=f'test_error.png'))
-            trainer.extend(
-                extensions.PlotReport(['nnPU/loss'], 'epoch', file_name=f'training_error.png'))
-            trainer.extend(
-                extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name=f'test_error.png'))
-    print("prior: {}".format(prior))
-    print("stepsize: {}".format(args.stepsize))
-    print("loss: {}".format(args.loss))
-    print("epoch: {}".format(args.epoch))
-    print("batchsize: {}".format(args.batchsize))
-    print("model: {}".format(selected_model))
-    print("beta: {}".format(args.beta))
-    print("gamma: {}".format(args.gamma))
-
-    # print("model params", model.W,model.b)
-
-    # run training
-    trainer.run()
-    precision, recall, (tn, fp, fn, tp) = get_accuracy(models['nnPU'],testX,testY)
-    print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
-    # print("accuracy on test data",accuracy)
-    return precision, recall, (tn, fp, fn, tp)
-
-
-def get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu):
-# def get_PU_model():
-#     gpu = -1
-#     unlabeled_tag = 0
-#     dataset  = 'indian_pines'
-#     unlabeled = 1679
-#     labeled = 121
-#     XYtrain, XYtest, prior, testX, testY, trainX, trainY = load_dataset(dataset, labeled, unlabeled,unlabeled_tag)
-
-
-    batchsize = 100
-    epoch = 100
-    loss = 'sigmoid_cross_entropy'
-    model = 'bass_net'
-    gamma = 1.
-    beta = 0.
-    stepsize = 1e-3
-    out = 'result'
+def get_PU_model(XYtrain, XYtest, prior):
+    unlabeled_tag = Config.unlabeled_tag
+    gpu = Config.gpu
+    batchsize = Config.batchsize
+    epoch = Config.epoch
+    loss = Config.loss
+    model = Config.model
+    gamma = Config.gamma
+    beta = Config.beta
+    stepsize = Config.stepsize
+    out = Config.out
     dim = XYtrain[0][0].size // len(XYtrain[0][0])
     channel = XYtrain[0][0].shape[0]
     train_iter = chainer.iterators.SerialIterator(XYtrain, batchsize)
@@ -356,12 +146,5 @@ def get_PU_model(XYtrain, XYtest, prior, unlabeled_tag, gpu):
     print("gamma: {}".format(gamma))
     # run training
     trainer.run()
-    # precision, recall, (tn, fp, fn, tp) = get_accuracy(models['nnPU'], testX, testY)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
     return models['nnPU']
 
-
-
-if __name__ == '__main__':
-    # model = get_PU_model()
-    main()
