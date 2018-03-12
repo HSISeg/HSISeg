@@ -1,5 +1,6 @@
 import numpy as np
 import Config
+from utils import shuffle_data
 
 def get_test_train_pixel(pos_class_list , neg_class_list, labelled_img, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross):
     pos_pixels = np.where(np.isin(labelled_img, pos_class_list) == True)
@@ -82,10 +83,7 @@ def get_binary_data(pos_pixels, neg_pixels, data_img):
     Y = np.asarray(np.concatenate((np.full(len(pos_pixels[0]), 1), np.full(len(neg_pixels[0]), 0))), dtype=np.int32)
     return X, Y
 
-def shuffle_data(X, Y):
-    perm = np.random.permutation(len(Y))
-    X, Y = X[perm], Y[perm]
-    return X, Y
+
 
 def make_dataset(dataset, pixels, n_labeled, n_unlabeled, unlabeled_tag):
     def make_PU_dataset_from_binary_dataset(x, y, train_pos_pixels, train_neg_pixels, labeled=n_labeled, unlabeled=n_unlabeled,

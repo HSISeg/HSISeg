@@ -64,6 +64,10 @@ def get_model_stats(predicted_output, true_output):
         tn, tp, fp, fn = 0, 0, 0, 0
     return precision, recall, (int(tn), int(fp), int(fn), int(tp))
 
+def shuffle_data(X, Y):
+    perm = np.random.permutation(len(Y))
+    X, Y = X[perm], Y[perm]
+    return X, Y
 
 def load_preprocessed_data():
     data_img = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_img']
