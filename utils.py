@@ -79,8 +79,9 @@ def load_preprocessed_data():
 
 def load_clustered_img():
     with open("mldata/Indian_pines_clustered_img.pickle", "rb") as fp:
-        pickle_data = pickle.load(fp)
-    return pickle_data
+        pickle_data = pickle.load(fp, encoding='latin-1')
+    clust_labelled_img = np.asarray(pickle_data['L'], dtype=np.int32)
+    return clust_labelled_img
 
 def save_data_in_PUstats(values):
     conn = sqlite3.connect('nnPU.db')
