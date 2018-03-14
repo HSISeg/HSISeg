@@ -1,6 +1,56 @@
 import numpy as np
 import math
-from utils import shuffle_data, get_binary_data
+from utils import get_binary_data, shuffle_data
+
+def get_prob_cluster(clust_labelled_img):
+    n_classes = np.max(clust_labelled_img) + 1
+    size = clust_labelled_img.size
+    clust_prob = np.zeros(n_classes, dtype=np.float32)
+    for i in range(n_classes):
+        clust_prob[i] = len(np.where(clust_labelled_img == i)[0]) / size
+    return clust_prob
+
+def get_clust_given_pos_prob(clust_labelled_img, train_lp_pixels, cross_pos_pixels):
+    pos_sel = np.zeros(clust_labelled_img.shape, dtype=np.bool)
+    pos_sel[train_lp_pixels] = True
+    pos_sel[cross_pos_pixels] = True
+    n_pos = len(train_lp_pixels[0]) + len(cross_pos_pixels[0])
+    n_classes = np.max(clust_labelled_img) + 1
+    clust_pos_prob = np.zeros(n_classes, dtype=np.float32)
+    for i in range(n_classes):
+        clust_pos_prob[i] = (np.logical_and(clust_labelled_img == i, pos_sel)).sum() / n_pos
+    return clust_pos_prob
+
+def get_euclidean_dist(point1, point2):
+    s = math.pow((point1[1] - point2[1]), 2) + math.pow((point1[0] - point2[0]), 2)
+    return s ** 0.5
+
+def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width):
+    all_pos_pixels = (np.concatenate((train_lp_pixels[0], cross_pos_pixels[0]), axis=0), np.concatenate((train_lp_pixels[1], cross_pos_pixels[1]), axis=0))
+    dist = np.zeros((length, width), dtype=np.float32)
+    for i in range(length):
+        for j in range(width):
+            dist[i][j] = min([get_euclidean_dist((i, j), (all_pos_pixels[0][l], all_pos_pixels[1][l])) for l in range(len(all_pos_pixels[0]))])
+    return dist
+
+def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels):
+    dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, gt_labelled_img.shape[0], gt_labelled_img.shape[1])
+    clust_prob = get_prob_cluster(clust_labelled_img)
+    clust_pos_prob = get_clust_given_pos_prob(clust_labelled_img, train_lp_pixels, cross_pos_pixels)
+    clust_sel_prob = clust_prob / clust_pos_prob
+    clust_sel_prob[np.isnan(clust_sel_prob)] = 0
+    # setting the infinite value pixels to max prob + 1
+    inf_pixels = clust_sel_prob == np.inf
+    clust_sel_prob[inf_pixels] = -1
+    max_prob = np.max(clust_sel_prob)
+    clust_sel_prob[inf_pixels] = max_prob + 1
+    n_classes = np.max(clust_labelled_img) + 1
+    final_prob = np.zeros(clust_labelled_img.shape, dtype=np.float32)
+    for i in range(n_classes):
+        class_pixels = clust_labelled_img == i
+        final_prob[class_pixels] = dist[class_pixels]
+        final_prob[class_pixels] += clust_sel_prob[i]
+    return final_prob
 
 def get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos_percentage):
     pos_pixels = np.where(np.isin(labelled_img, pos_class_list) == True)
@@ -22,19 +72,6 @@ def get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos
                         pos_pixels[1][indx][n_train_pos_pixels: n_train_pos_pixels + n_cross_pos_pixels])
     return train_lp_pixels, cross_pos_pixels
 
-
-def get_euclidean_dist(point1, point2):
-    s = math.pow((point1[1] - point2[1]), 2) + math.pow((point1[0] - point2[0]), 2)
-    return s ** 0.5
-
-def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width):
-    all_pos_pixels = (np.concatenate((train_lp_pixels[0], cross_pos_pixels[0]), axis=0), np.concatenate((train_lp_pixels[1], cross_pos_pixels[1]), axis=0))
-    dist = np.zeros((length, width), dtype=np.float32)
-    for i in range(length):
-        for j in range(width):
-            dist[i][j] = min([get_euclidean_dist((i, j), (all_pos_pixels[0][l], all_pos_pixels[1][l])) for l in range(len(all_pos_pixels[0]))])
-    return dist
-
 def get_unlabelled_pixels(dist, pos_neg_ratio_in_train, pos_neg_ratio_in_cross, train_lp_pixels, cross_pos_pixels):
     n_train_pos_pixels = len(train_lp_pixels[0])
     n_cross_pos_pixels = len(cross_pos_pixels[0])
@@ -53,6 +90,17 @@ def get_unlabelled_pixels(dist, pos_neg_ratio_in_train, pos_neg_ratio_in_cross, 
     train_unlabelled_indx = (unlabelled_indx[0][:n_unlabelled_train], unlabelled_indx[1][:n_unlabelled_train])
     cross_unlabelled_indx = (unlabelled_indx[0][n_unlabelled_train:], unlabelled_indx[1][n_unlabelled_train:])
     return train_unlabelled_indx, cross_unlabelled_indx
+
+def get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_indx):
+    pos_pixels = np.isin(labelled_img, pos_class_list)
+    unlabelled_indx = np.zeros(labelled_img.shape, dtype=np.bool)
+    unlabelled_indx[train_unlabelled_indx] = True
+    unlabelled_indx_pos = np.copy(unlabelled_indx)
+    unlabelled_indx[pos_pixels] = False
+    train_un_pixels = np.where(unlabelled_indx == True)
+    unlabelled_indx_pos[np.logical_not(pos_pixels)] = False
+    train_up_pixels = np.where(unlabelled_indx_pos == True)
+    return train_up_pixels, train_un_pixels
 
 def get_test_pixels(train_lp_pixels, train_unlabelled_indx, cross_pos_pixels, cross_unlabelled_indx, labelled_img, pos_class_list):
     all_pos_pixels = np.isin(labelled_img, pos_class_list)
@@ -79,28 +127,21 @@ def shuffle_test_data(X, Y, test_pos_pixels, test_neg_pixels):
     X, Y = X[perm], Y[perm]
     return X, Y, shuffled_test_pixels
 
-def get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_indx):
-    pos_pixels = np.isin(labelled_img, pos_class_list)
-    unlabelled_indx = np.zeros(labelled_img.shape, dtype=np.bool)
-    unlabelled_indx[train_unlabelled_indx] = True
-    unlabelled_indx_pos = np.copy(unlabelled_indx)
-    unlabelled_indx[pos_pixels] = False
-    train_un_pixels = np.where(unlabelled_indx == True)
-    unlabelled_indx_pos[np.logical_not(pos_pixels)] = False
-    train_up_pixels = np.where(unlabelled_indx_pos == True)
-    return train_up_pixels, train_un_pixels
-
-def get_PU_data(pos_class_list, data_img, labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross):
+def get_PU_data(pos_class_list, data_img, gt_labelled_img, clust_labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross):
     pos_class_list = list(set(pos_class_list))
-    train_lp_pixels, cross_pos_pixels = get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos_percentage)
-    dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, labelled_img.shape[0], labelled_img.shape[1])
-    train_unlabelled_indx, cross_unlabelled_indx = get_unlabelled_pixels(dist, pos_neg_ratio_in_train, pos_neg_ratio_in_cross, train_lp_pixels, cross_pos_pixels)
-    train_up_pixels, train_un_pixels = get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_indx)
+    train_lp_pixels, cross_pos_pixels = get_pos_pixels(pos_class_list, gt_labelled_img, train_pos_percentage,
+                                                       cross_pos_percentage)
+    final_prob = get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels)
+    train_unlabelled_indx, cross_unlabelled_indx = get_unlabelled_pixels(final_prob, pos_neg_ratio_in_train,
+                                                                         pos_neg_ratio_in_cross, train_lp_pixels,
+                                                                         cross_pos_pixels)
+    train_up_pixels, train_un_pixels = get_train_unlabelled_dist(gt_labelled_img, pos_class_list, train_unlabelled_indx)
     trainX, trainY = get_binary_data(train_lp_pixels, train_unlabelled_indx, data_img)
     crossX, crossY = get_binary_data(cross_pos_pixels, cross_unlabelled_indx, data_img)
     trainX, trainY = shuffle_data(trainX, trainY)
     crossX, crossY = shuffle_data(crossX, crossY)
-    test_pos_pixels, test_neg_pixels = get_test_pixels(train_lp_pixels, train_unlabelled_indx, cross_pos_pixels, cross_unlabelled_indx, labelled_img, pos_class_list)
+    test_pos_pixels, test_neg_pixels = get_test_pixels(train_lp_pixels, train_unlabelled_indx, cross_pos_pixels,
+                                                       cross_unlabelled_indx, gt_labelled_img, pos_class_list)
     testX, testY = get_binary_data(test_pos_pixels, test_neg_pixels, data_img)
     XYtrain = list(zip(trainX, trainY))
     prior = 0.33

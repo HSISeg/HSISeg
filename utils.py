@@ -5,8 +5,8 @@ from chainer import functions as F
 import numpy as np
 import Config
 import scipy.io as io
-import sqlite3
-from sklearn.metrics import roc_curve
+import sqlite3, pickle
+from sklearn.metrics import roc_curve, roc_auc_score
 import pandas as pd
 
 def get_threshold(model, X, Y):
@@ -24,6 +24,7 @@ def get_threshold(model, X, Y):
     if isinstance(h, chainer.Variable):
         h = h.data
     fpr, tpr, threshold = roc_curve(Y, h, pos_label=1)
+    model.auc = roc_auc_score(Y, h)
     i = np.arange(len(tpr))
     roc = pd.DataFrame({'tf': pd.Series(tpr - (1 - fpr), index=i), 'threshold': pd.Series(threshold, index=i)})
     roc_t = roc.ix[(roc.tf - 0).abs().argsort()[:1]]
@@ -76,11 +77,15 @@ def load_preprocessed_data():
     data_img = np.asarray(data_img, dtype=np.float32)
     return data_img, labelled_img
 
+def load_clustered_img():
+    with open("mldata/Indian_pines_clustered_img.pickle", "rb") as fp:
+        pickle_data = pickle.load(fp)
+    return pickle_data
 
 def save_data_in_PUstats(values):
     conn = sqlite3.connect('nnPU.db')
     c = conn.cursor()
-    query = '''INSERT INTO PUstats (pos_class, neg_class, precision, recall, true_pos, true_neg, false_pos, false_neg, test_type, exclude_class_indx, no_train_pos_labelled, no_train_pos_unlabelled, no_train_neg_unlabelled, visual_result_filename, train_pos_neg_ratio, threshold) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?) '''
+    query = '''INSERT INTO PUstats (pos_class, neg_class, precision, recall, true_pos, true_neg, false_pos, false_neg, test_type, exclude_class_indx, no_train_pos_labelled, no_train_pos_unlabelled, no_train_neg_unlabelled, visual_result_filename, train_pos_neg_ratio, threshold, auc) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?) '''
     c.executemany(query, [values])
     conn.commit()
     conn.close()
@@ -143,6 +148,10 @@ def get_binary_gt_img(labelled_img, train_lp_pixels, train_up_pixels, train_un_p
     gt_img[test_neg_pixels] = 0
     return gt_img
 
+def get_binary_data(pos_pixels, neg_pixels, data_img):
+    X = np.concatenate((data_img[pos_pixels], data_img[neg_pixels]))
+    Y = np.asarray(np.concatenate((np.full(len(pos_pixels[0]), 1), np.full(len(neg_pixels[0]), 0))), dtype=np.int32)
+    return X, Y
 
 def get_binary_predicted_image(labelled_img, model, test_X, train_lp_pixels, train_up_pixels, train_un_pixels, shuffled_test_pixels, exclude_pixels):
     predicted_img = np.array(labelled_img, copy=True)

@@ -48,7 +48,7 @@ def run():
                 utils.save_data_in_PUstats((
                     str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
                     tn, fp, fn, 'type_2', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
-                    int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, None, None))
+                    int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, None, None, model.auc))
 
 
 if __name__ == '__main__':

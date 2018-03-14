@@ -44,6 +44,7 @@ class MultiLayerPerceptron(MyClassifier, Chain):
         )
         self.prior = prior
         self.threshold = 0.5
+        self.auc = None
         self.loss_func_name = loss_func_name
 
     def calculate(self, x):
@@ -82,6 +83,7 @@ class CNN(MyClassifier, Chain):
         self.prior = prior
         self.threshold = 0.5
         self.loss_func_name = loss_func_name
+        self.auc = None
 
     def calculate(self, x):
 
@@ -151,6 +153,7 @@ class BassNet(MyClassifier, Chain):
         self.input_channels = channels
         self.band_size = self.block1_nfilters/self.nbands
         self.threshold = 0.5
+        self.auc = None
         self.loss_func_name = loss_func_name
 
         super(BassNet, self).__init__(

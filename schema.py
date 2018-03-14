@@ -16,5 +16,9 @@ try:
     c.execute('''ALTER TABLE PUstats ADD COLUMN threshold DOUBLE''')
 except:
     pass
+try:
+    c.execute('''ALTER TABLE PUstats ADD COLUMN auc DOUBLE''')
+except:
+    pass
 conn.commit()
 conn.close()

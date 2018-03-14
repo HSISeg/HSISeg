@@ -43,7 +43,7 @@ def run():
                     utils.save_data_in_PUstats((
                                          str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
                                          tn, fp, fn, test_name, ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
-                                         int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, ratio, threshold))
+                                         int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, ratio, threshold, model.auc))
     # without threshold
     include_class_list = Config.type_1_include_class_list
     for pos_class in include_class_list:
@@ -92,7 +92,7 @@ def run():
                         str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
                         tn, fp, fn, test_name, ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
                         int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, ratio,
-                        None))
+                        None, model.auc))
     # cross validation pixels increase with cross validation ratio change
     include_class_list = Config.type_1_include_class_list
     type_1_cross_pos_percentage = 30
@@ -142,7 +142,7 @@ def run():
                         str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
                         tn, fp, fn, test_name, ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
                         int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, ratio,
-                        None))
+                        None, model.auc))
 
 
 if __name__ == '__main__':

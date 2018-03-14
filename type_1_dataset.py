@@ -1,6 +1,6 @@
 import numpy as np
 import Config
-from utils import shuffle_data
+from utils import shuffle_data, get_binary_data
 
 def get_test_train_pixel(pos_class_list , neg_class_list, labelled_img, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross):
     pos_pixels = np.where(np.isin(labelled_img, pos_class_list) == True)
@@ -77,13 +77,6 @@ def get_test_train_pixel(pos_class_list , neg_class_list, labelled_img, pos_neg_
         if len(train_neg_pixels[0]) == 0 or len(test_neg_pixels[0]) == 0:
             raise ValueError("no negative pixels for training and/or testing.")
     return train_pos_pixels, train_neg_pixels, test_pos_pixels, test_neg_pixels, cross_pos_pixels, cross_neg_pixels
-
-def get_binary_data(pos_pixels, neg_pixels, data_img):
-    X = np.concatenate((data_img[pos_pixels], data_img[neg_pixels]))
-    Y = np.asarray(np.concatenate((np.full(len(pos_pixels[0]), 1), np.full(len(neg_pixels[0]), 0))), dtype=np.int32)
-    return X, Y
-
-
 
 def make_dataset(dataset, pixels, n_labeled, n_unlabeled, unlabeled_tag):
     def make_PU_dataset_from_binary_dataset(x, y, train_pos_pixels, train_neg_pixels, labeled=n_labeled, unlabeled=n_unlabeled,
