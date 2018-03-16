@@ -13,6 +13,11 @@ gpu = -1
 unlabeled_tag = 0
 default_positive_prior = 0.5
 
+# Data name Can be Indian_pines, Salinas, PaviaU
+data = "Indian_pines"
+url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
+url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
+
 """test type 1 config"""
 type_1_train_pos_labelled_percentage = 60
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled

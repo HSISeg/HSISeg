@@ -14,8 +14,8 @@ def run():
         neg_class_list = copy.copy(list(set(include_class_list)))
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
-            # for ratio in [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]:
-            for ratio in [0.25]:
+            for ratio in [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]:
+            # for ratio in [0.25]:
                 test_name = 'type_1_train_cross_'+str(ratio)
                 if not utils.check_if_test_done(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
                     data_img, labelled_img = utils.load_preprocessed_data()

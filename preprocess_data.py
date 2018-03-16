@@ -1,12 +1,12 @@
 import numpy as np
 import scipy.ndimage
 import scipy.io as io
-import os
+import os, Config
 
 PATCH_SIZE = 3
-data = "Indian_pines"
-url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
-url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
+data = Config.data
+url1 = Config.url1
+url2 = Config.url2
 
 
 def load_data():
