@@ -10,14 +10,15 @@ url2 = Config.url2
 
 
 def load_data():
-    try:
-        input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-        target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
-    except:
-        os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url1)
-        os.system('wget' + ' -O mldata/' + data + '_gt.mat' + ' ' + url2)
-        input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-        target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
+    # try:
+    print(data)
+    input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
+    target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
+    # except:
+    #     os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url1)
+    #     os.system('wget' + ' -O mldata/' + data + '_gt.mat' + ' ' + url2)
+    #     input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
+    #     target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
     input_mat = np.asarray(input_mat, dtype=np.float32)
     return input_mat, target_mat
@@ -48,7 +49,7 @@ def Patch(height_index, width_index, MEAN_ARRAY, input_mat):
     return np.array(mean_normalized_patch)
 
 def preprocess_data(input_mat, target_mat):
-    # print("input_mat dimensions",input_mat.shape)
+    print("input_mat dimensions",input_mat.shape)
     HEIGHT = input_mat.shape[0]
     WIDTH = input_mat.shape[1]
     BAND = input_mat.shape[2]
@@ -59,7 +60,7 @@ def preprocess_data(input_mat, target_mat):
     MEAN_ARRAY = np.ndarray(shape=(BAND,), dtype=np.float64)
     new_input_mat = []
     input_mat = np.transpose(input_mat, (2, 0, 1))
-    # print(input_mat.shape)
+    print(input_mat.shape)
     for i in range(BAND):
         MEAN_ARRAY[i] = np.mean(input_mat[i, :, :])
         try:
@@ -68,7 +69,7 @@ def preprocess_data(input_mat, target_mat):
             print(str(e))
             new_input_mat = input_mat
 
-    # print(np.array(new_input_mat).shape)
+    print(np.array(new_input_mat).shape)
 
     input_mat = np.array(new_input_mat)
 

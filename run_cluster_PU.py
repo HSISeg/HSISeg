@@ -16,7 +16,7 @@ def run():
         neg_class_list = copy.copy(list(set(include_class_list)))
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
-            test_name = 'cluster_exclude_PU_'+str(ratio)
+            test_name = Config.data + 'cluster_exclude_PU_'+str(ratio)
             if not utils.check_if_test_done(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
                 data_img, labelled_img = utils.load_preprocessed_data()
                 clust_labelled_img = utils.load_clustered_img()

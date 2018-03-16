@@ -16,13 +16,15 @@ def run():
         neg_class_list = copy.copy(list(set(include_class_list)))
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
-            test_name = 'distance_based_train_cross_'+str(ratio)
+            test_name = Config.data + 'distance_based_train_cross_'+str(ratio)
             if not utils.check_if_test_done(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
                 data_img, labelled_img = utils.load_preprocessed_data()
                 n_class = np.max(labelled_img) + 1
                 exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
-                (XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY), \
-                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class] , data_img, labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio)
+                # (XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY), \
+                # (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class] , data_img, labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio)
+                # utils.save_pickle({"XYtrain":XYtrain,"XYtest":XYtest,"prior":prior,"testX":testX,"testY":testY,"trainX":trainX,"trainY":trainY,"crossX":crossX,"crossY":crossY, "train_lp_pixels": train_lp_pixels, "train_up_pixels": train_up_pixels,"train_un_pixels": train_un_pixels, "test_pos_pixels": test_pos_pixels, "test_neg_pixels":test_neg_pixels, "shuffled_test_pixels":shuffled_test_pixels}, "mldata/"+Config.data+"sampled_data.pickle")
+                XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels = utils.load_sampled_data("mldata/"+Config.data+"sampled_data.pickle")
                 print("training", trainX.shape)
                 print("training split: labelled positive ->", len(train_lp_pixels[0]), "unlabelled positive ->", len(train_up_pixels[0]), "unlabelled negative ->", len(train_un_pixels[0]))
                 print("test", testX.shape)

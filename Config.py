@@ -40,6 +40,7 @@ is_random_neg = True
 # Note: Class labels should be present in groundtooth image
 # include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 type_1_include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
+# type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
 """Test type 2 config"""
 # Minimum percentage of total positive pixels that should be present in the patch

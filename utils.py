@@ -75,17 +75,29 @@ def shuffle_data(X, Y):
     return X, Y
 
 def load_preprocessed_data():
-    data_img = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_img']
-    labelled_img = io.loadmat("mldata/Indian_pines_Preprocessed_patch_3.mat")['preprocessed_gt']
+    data_img = io.loadmat("mldata/" + Config.data + "_Preprocessed_patch_3.mat")['preprocessed_img']
+    labelled_img = io.loadmat("mldata/" + Config.data + "_Preprocessed_patch_3.mat")['preprocessed_gt']
     labelled_img = np.asarray(labelled_img, dtype=np.int32)
     data_img = np.asarray(data_img, dtype=np.float32)
     return data_img, labelled_img
 
 def load_clustered_img():
-    with open("mldata/Indian_pines_clustered_img.pickle", "rb") as fp:
+    with open("mldata/" + Config.data + "_clustered_img.pickle", "rb") as fp:
         pickle_data = pickle.load(fp, encoding='latin-1')
     clust_labelled_img = np.asarray(pickle_data['L'], dtype=np.int32)
     return clust_labelled_img
+
+def save_pickle(data, file):
+    with open(file, "wb") as fp:
+        pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
+    return
+
+def load_sampled_data(file):
+    with open(file, "rb") as fp:
+        pickle_data = pickle.load(fp)
+    XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY = pickle_data["XYtrain"], pickle_data["XYtest"], pickle_data["prior"], pickle_data["testX"], pickle_data["testY"], pickle_data["trainX"], pickle_data["trainY"], pickle_data["crossX"], pickle_data["crossY"]
+    train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels = pickle_data["train_lp_pixels"], pickle_data["train_up_pixels"], pickle_data["train_un_pixels"], pickle_data["test_pos_pixels"], pickle_data["test_neg_pixels"], pickle_data["shuffled_test_pixels"]
+    return XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels
 
 def save_data_in_PUstats(values):
     conn = sqlite3.connect('nnPU.db')
