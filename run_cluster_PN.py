@@ -1,6 +1,5 @@
-from DistanceBasedSampling import  get_PU_data
+from ClusterBasedSampling import get_PU_data
 from PN_learning import train as train_PN
-from train import get_PU_model
 import utils
 from visual_results import generate_and_save_visualizations
 import copy
@@ -16,19 +15,18 @@ def run():
         neg_class_list = copy.copy(list(set(include_class_list)))
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
-            test_name = 'distance_based_train_cross_'+str(ratio)
+            test_name = 'cluster_exclude_PN_'+str(ratio)
             if not utils.check_if_test_done(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
                 data_img, labelled_img = utils.load_preprocessed_data()
+                clust_labelled_img = utils.load_clustered_img()
                 n_class = np.max(labelled_img) + 1
                 exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY), \
-                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class] , data_img, labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio)
+                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class], neg_class_list, data_img, labelled_img, clust_labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio)
                 print("training", trainX.shape)
                 print("training split: labelled positive ->", len(train_lp_pixels[0]), "unlabelled positive ->", len(train_up_pixels[0]), "unlabelled negative ->", len(train_un_pixels[0]))
                 print("test", testX.shape)
                 model = train_PN(trainX, trainY, testX, testY)
-                # model = get_PU_model(XYtrain, XYtest, prior)
-
                 # generate predicted and groundtooth image
                 exclude_pixels = utils.get_excluded_pixels(labelled_img, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels)
                 gt_img = utils.get_binary_gt_img(labelled_img, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, exclude_pixels)

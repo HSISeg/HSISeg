@@ -16,7 +16,6 @@ def get_test_train_pixel(pos_class_list , neg_class_list, labelled_img, pos_neg_
     # n_train_pos_pixels = 200
     if n_train_pos_pixels == 0:
         raise ValueError("no positive pixels for training.")
-    neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
     indx = np.random.permutation(len(pos_pixels[0]))
     train_pos_pixels = (pos_pixels[0][indx[:n_train_pos_pixels]], pos_pixels[1][indx[:n_train_pos_pixels]])
     # cross validation
@@ -41,6 +40,7 @@ def get_test_train_pixel(pos_class_list , neg_class_list, labelled_img, pos_neg_
         cross_neg_pixels = (neg_pixels[0][indx[n_train_neg_pixels: n_train_neg_pixels + n_cross_neg_pixels]], neg_pixels[1][indx[n_train_neg_pixels: n_train_neg_pixels + n_cross_neg_pixels]])
     # If train_neg_percentage no of pixels taken for each class
     else:
+        neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
         test_neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
         train_neg_pixels = (np.array([], dtype=np.int64), np.array([], dtype=np.int64))
         # n_train_neg_pixels = (len(neg_pixels[0]) * Config.type_1_train_neg_percentage) // 100

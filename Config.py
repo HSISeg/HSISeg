@@ -29,7 +29,7 @@ In the above case it might happen that training data might not have any pixel fo
 If set to false then train_neg_percentage pixels of data is randomly selected for each class in negative class list
 The above ensures that training data has some pixels of each class in negative class list 
 """
-is_random_neg = False
+is_random_neg = True
 
 # class label included in this test, negative class  = list(set(include_class_list) - set(positive_class))
 # Note: Class labels should be present in groundtooth image

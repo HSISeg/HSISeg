@@ -38,6 +38,7 @@ def run():
 
                 # get model stats
                 precision, recall, (tn, fp, fn, tp) = utils.get_model_stats(predicted_output, testY)
+                utils.set_model_auc(model, predicted_output, testY)
 
                 visual_result_filename = "result/type_2_test_" + str(pos_class) + "_pos_" + str(
                     datetime.datetime.now().timestamp() * 1000) + ".png"
@@ -48,7 +49,7 @@ def run():
                 utils.save_data_in_PUstats((
                     str(pos_class), ",".join([str(i) for i in neg_class_list]), precision, recall, tp,
                     tn, fp, fn, 'type_2', ",".join([str(i) for i in exclude_list]), int(len(train_lp_pixels[0])),
-                    int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, None, None, model.auc))
+                    int(len(train_up_pixels[0])), int(len(train_un_pixels[0])), visual_result_filename, None, model.threshold, model.auc))
 
 
 if __name__ == '__main__':

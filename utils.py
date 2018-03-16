@@ -50,6 +50,10 @@ def get_output_by_activation(model, x):
 
     return h
 
+def set_model_auc(model, predicted_output, true_output):
+    model.auc = roc_auc_score(true_output, predicted_output)
+    return
+
 def get_model_stats(predicted_output, true_output):
     if isinstance(predicted_output, chainer.Variable):
         predicted_output = predicted_output.data
