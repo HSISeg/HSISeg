@@ -8,7 +8,7 @@ from . import algo_default_params as default_params
 import json,os,subprocess
 from algo.image_helper import get_data_from_image,save_to_pickle
 from algo.models import Results
-import psutil
+# import psutil
 
 @csrf_exempt
 def image_to_pickle(request):
@@ -154,6 +154,7 @@ def kill_task(request):
 		tasks = Results.objects.filter(id = params['task_id'])
 		for task in tasks:
 			try:
+				import psutil
 				parent = psutil.Process(task.pid)
 				for child in parent.children(recursive=True):
 				    child.kill()
