@@ -1,6 +1,6 @@
 #NNPU config
 batchsize = 100
-epoch = 400
+epoch = 5
 loss = 'sigmoid_cross_entropy'
 model = 'bass_net'
 gamma = 1.
