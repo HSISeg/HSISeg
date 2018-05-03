@@ -1,6 +1,6 @@
 import numpy as np
 import six
-import time, utils
+import time, utils, Config
 from chainer import Variable, optimizers, serializers, initializers, cuda
 import scipy.io
 import chainer
@@ -300,8 +300,8 @@ def run_classification():
     train = (X_tr, Y_tr)
     test = (X_te, Y_te)
 
-    batchsize = 1000
-    n_epoch = 400
+    batchsize = Config.batchsize
+    n_epoch = Config.epoch
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
@@ -373,15 +373,15 @@ def train(X_tr, Y_tr, X_te, Y_te):
     train = (X_tr, Y_tr)
     test = (X_te, Y_te)
 
-    batchsize = 100
-    n_epoch = 100
+    batchsize = Config.batchsize
+    n_epoch = Config.epoch
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
     classifier_model = SoftmaxClassifier(model)
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
-    out = 'result'
+    out = Config.out
     # Learning loop
     for epoch in six.moves.range(1, n_epoch + 1):
         print('epoch', epoch)
@@ -398,7 +398,7 @@ def train(X_tr, Y_tr, X_te, Y_te):
             optimizer.update(classifier_model, x, t)
 
             if epoch == 1 and i == 0:
-                with open('{}/graph.dot'.format(out), 'w') as o:
+                with open('{}graph.dot'.format(out), 'w') as o:
                     g = computational_graph.build_computational_graph(
                         (classifier_model.loss,))
                     o.write(g.dump())

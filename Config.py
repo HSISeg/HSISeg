@@ -1,18 +1,18 @@
 #NNPU config
 batchsize = 100
-epoch = 100
+epoch = 400
 loss = 'sigmoid_cross_entropy'
 model = 'bass_net'
 gamma = 1.
 beta = 0.
 stepsize = 1e-3
-out = 'result'
+out = 'mldata/'
 output_layer_activation = 'sigmoid'
 # Zero-origin GPU ID (negative value indicates CPU)
 gpu = -1
 unlabeled_tag = 0
 default_positive_prior = 0.5
-
+PATCH_SIZE = 3
 # Data name Can be Indian_pines, Salinas, PaviaU
 data = "Indian_pines"
 url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
@@ -21,11 +21,11 @@ url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
 """test type 1 config"""
 type_1_train_pos_labelled_percentage = 60
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
-type_1_train_pos_percentage = 30
+type_1_train_pos_percentage = 10
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
-type_1_pos_neg_ratio_in_train = 1
-type_1_cross_pos_percentage = 20
+type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+type_1_cross_pos_percentage = 7
 type_1_pos_neg_ratio_in_cross = 1
 """ 
 boolean value to indicate the way of selection for negative unlabelled training data,

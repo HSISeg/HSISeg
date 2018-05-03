@@ -3,22 +3,22 @@ import scipy.ndimage
 import scipy.io as io
 import os, Config
 
-PATCH_SIZE = 3
+PATCH_SIZE = Config.PATCH_SIZE
 data = Config.data
 url1 = Config.url1
 url2 = Config.url2
 
 
-def load_data():
-    # try:
-    print(data)
-    input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-    target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
-    # except:
-    #     os.system('wget' + ' -O mldata/' + data + '.mat' + ' ' + url1)
-    #     os.system('wget' + ' -O mldata/' + data + '_gt.mat' + ' ' + url2)
-    #     input_mat = io.loadmat('mldata/' + data + '.mat')[data.lower()]
-    #     target_mat = io.loadmat('mldata/' + data + '_gt.mat')[data.lower() + '_gt']
+def download_and_save_data():
+    try:
+        print(data)
+        input_mat = io.loadmat(Config.out + data + '.mat')[data.lower()]
+        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data.lower() + '_gt']
+    except:
+        os.system('wget' + ' -O ' + Config.out + data + '.mat' + ' ' + url1)
+        os.system('wget' + ' -O ' + Config.out + data + '_gt.mat' + ' ' + url2)
+        input_mat = io.loadmat(Config.out + data + '.mat')[data.lower()]
+        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data.lower() + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
     input_mat = np.asarray(input_mat, dtype=np.float32)
     return input_mat, target_mat
@@ -84,7 +84,7 @@ def preprocess_data(input_mat, target_mat):
 
 
 def run_preprocessing():
-    input_mat, target_mat = load_data()
+    input_mat, target_mat = download_and_save_data()
     print("preprocessing data ....")
     preprocessed_img = preprocess_data(input_mat, target_mat)
     preprocessed_data = {}

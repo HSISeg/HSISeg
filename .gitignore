@@ -3,11 +3,14 @@
 *.pyc
 *.mat
 **/*.png
+*.out
+*/wget-log
 *.pickle
 *.dot
 *.DS_Store
 *.csv
 *.db
 .idea/
+*.jpeg
 result/log
 result/1/*

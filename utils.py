@@ -8,6 +8,7 @@ import scipy.io as io
 import sqlite3, pickle
 from sklearn.metrics import roc_curve, roc_auc_score
 import pandas as pd
+from algo.models import PNstats, PUstats
 
 def get_threshold(model, X, Y):
     xp = cuda.get_array_module(X, False)
@@ -99,6 +100,7 @@ def load_sampled_data(file):
     train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels = pickle_data["train_lp_pixels"], pickle_data["train_up_pixels"], pickle_data["train_un_pixels"], pickle_data["test_pos_pixels"], pickle_data["test_neg_pixels"], pickle_data["shuffled_test_pixels"]
     return XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels
 
+
 def save_data_in_PUstats(values):
     conn = sqlite3.connect('nnPU.db')
     c = conn.cursor()
@@ -143,6 +145,15 @@ def check_if_test_done(pos_class, test_type, neg_class):
         return True
     conn.commit()
     conn.close()
+    return False
+
+def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU):
+    if isPU:
+        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type)
+    else:
+        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type)
+    if rows:
+        return True
     return False
 
 def get_excluded_pixels(labelled_img, train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels):
