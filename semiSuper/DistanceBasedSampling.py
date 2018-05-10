@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from utils import shuffle_data, get_binary_data
+from utils import shuffle_data, get_binary_data, get_train_unlabelled_dist
 
 def get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos_percentage):
     pos_pixels = np.where(np.isin(labelled_img, pos_class_list) == True)
@@ -79,18 +79,7 @@ def shuffle_test_data(X, Y, test_pos_pixels, test_neg_pixels):
     X, Y = X[perm], Y[perm]
     return X, Y, shuffled_test_pixels
 
-def get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_indx):
-    pos_pixels = np.isin(labelled_img, pos_class_list)
-    unlabelled_indx = np.zeros(labelled_img.shape, dtype=np.bool)
-    unlabelled_indx[train_unlabelled_indx] = True
-    unlabelled_indx_pos = np.copy(unlabelled_indx)
-    unlabelled_indx[pos_pixels] = False
-    train_un_pixels = np.where(unlabelled_indx == True)
-    unlabelled_indx_pos[np.logical_not(pos_pixels)] = False
-    train_up_pixels = np.where(unlabelled_indx_pos == True)
-    return train_up_pixels, train_un_pixels
-
-def get_PU_data(pos_class_list, neg_class_list, data_img, labelled_img, clust_labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross, is_dist_based):
+def get_PN_data(pos_class_list, neg_class_list, data_img, labelled_img, clust_labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross, is_dist_based):
     pos_class_list = list(set(pos_class_list))
     train_lp_pixels, cross_pos_pixels = get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos_percentage)
     dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, labelled_img.shape[0], labelled_img.shape[1])

@@ -32,6 +32,17 @@ def get_threshold(model, X, Y):
     model.threshold = list(roc_t['threshold'])[0]
     return model.threshold
 
+def get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_indx):
+    pos_pixels = np.isin(labelled_img, pos_class_list)
+    unlabelled_indx = np.zeros(labelled_img.shape, dtype=np.bool)
+    unlabelled_indx[train_unlabelled_indx] = True
+    unlabelled_indx_pos = np.copy(unlabelled_indx)
+    unlabelled_indx[pos_pixels] = False
+    train_un_pixels = np.where(unlabelled_indx == True)
+    unlabelled_indx_pos[np.logical_not(pos_pixels)] = False
+    train_up_pixels = np.where(unlabelled_indx_pos == True)
+    return train_up_pixels, train_un_pixels
+
 def get_output_by_activation(model, x):
     xp = cuda.get_array_module(x, False)
     if Config.output_layer_activation not in ['sigmoid','sign']:

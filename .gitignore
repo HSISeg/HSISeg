@@ -9,6 +9,7 @@
 *.dot
 *.DS_Store
 *.csv
+mldata/log
 *.db
 .idea/
 *.jpeg

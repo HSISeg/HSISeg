@@ -1,4 +1,7 @@
-from ClusterBasedSampling import get_PU_data
+import os, django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "HSISeg.settings")
+django.setup()
+from semiSuper.ClusterDistBasedSampling import get_PU_data
 from train import get_PU_model
 from PN_learning import train as train_PN
 import utils
@@ -8,7 +11,7 @@ import Config
 import datetime
 import numpy as np
 
-def run():
+def run(clust_labelled_img, data_img, labelled_img):
     # cross validation ratio change
     ratio = 0.33
     include_class_list = Config.type_1_include_class_list
@@ -17,13 +20,16 @@ def run():
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
             test_name = Config.data + 'cluster_exclude_PU_'+str(ratio)
-            if not utils.check_if_test_done(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
-                data_img, labelled_img = utils.load_preprocessed_data()
-                clust_labelled_img = utils.load_clustered_img()
+            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, True):
+            # if not utils.check_if_test_done_models(pos_class, test_name, ",".join([str(i) for i in neg_class_list])):
+                if clust_labelled_img is None or data_img is None or labelled_img is None:
+                    data_img, labelled_img = utils.load_preprocessed_data()
+                    clust_labelled_img = utils.load_clustered_img()
+
                 n_class = np.max(labelled_img) + 1
                 exclude_list = list(set([i for i in range(n_class)]) - set(include_class_list))
                 (XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY), \
-                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class], neg_class_list, data_img, labelled_img, clust_labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio)
+                (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels) = get_PU_data([pos_class], neg_class_list, data_img, labelled_img, clust_labelled_img, Config.type_1_train_pos_percentage, ratio, Config.type_1_cross_pos_percentage, ratio, True)
                 print("training", trainX.shape)
                 print("training split: labelled positive ->", len(train_lp_pixels[0]), "unlabelled positive ->", len(train_up_pixels[0]), "unlabelled negative ->", len(train_un_pixels[0]))
                 print("test", testX.shape)
@@ -50,4 +56,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run(None, None, None)

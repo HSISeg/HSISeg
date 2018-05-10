@@ -1,6 +1,6 @@
 import numpy as np
 import six
-import time, utils, Config
+import time, utils, Config, copy
 from chainer import Variable, optimizers, serializers, initializers, cuda
 import scipy.io
 import chainer
@@ -10,58 +10,8 @@ import chainer.links as L
 from chainer import Chain, cuda
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 
-class MultiLayerPerceptron(Chain):
-    def __init__(self):
-        super(MultiLayerPerceptron, self).__init__(
-            # input size of each layer will be inferred when set `None`
-            l1=L.Linear(None, 300),  # n_in -> n_units
-            l2=L.Linear(None, 300),  # n_units -> n_units
-            l3=L.Linear(None, 1),  # n_units -> n_out
-        )
-
-    # def __init__(self):
-        # super(MultiLayerPerceptron, self).__init__(l1=L.Linear(None, 300, nobias=True),
-        #                                            b1=L.BatchNormalization(300),
-        #                                            l2=L.Linear(300, 300, nobias=True),
-        #                                            b2=L.BatchNormalization(300),
-        #                                            l3=L.Linear(300, 300, nobias=True),
-        #                                            b3=L.BatchNormalization(300),
-        #                                            l4=L.Linear(300, 300, nobias=True),
-        #                                            b4=L.BatchNormalization(300),
-        #                                            l5=L.Linear(300, 1))
-        # self.af = F.relu
-
-
-    def calculate(self, x):
-        h1 = F.relu(self.l1(x))
-        h2 = F.relu(self.l2(h1))
-        h = self.l3(h2)
-        h = F.sigmoid(h)
-        h = F.reshape(h, (h.shape[0],))
-        # h = self.l1(x)
-        # h = self.b1(h)
-        # h = self.af(h)
-        # h = self.l2(h)
-        # h = self.b2(h)
-        # h = self.af(h)
-        # h = self.l3(h)
-        # h = self.b3(h)
-        # h = self.af(h)
-        # h = self.l4(h)
-        # h = self.b4(h)
-        # h = self.af(h)
-        # h = self.l5(h)
-        return h
-
-    def __call__(self, x):
-        # print(x.shape)
-        h = self.calculate(x)
-        print(h.shape)
-        return h
-
-
 class Configuration1(Chain):
-    def __init__(self, channels):
+    def __init__(self, channels, n_classes = 1):
         self.block1_nfilters = channels
         self.block1_patch_size = 1
         self.af_block1 = F.relu
@@ -99,15 +49,19 @@ class Configuration1(Chain):
             l4=L.Convolution2D(self.block2_nfilters_2, self.block2_nfilters_3, (1, self.block2_patch_size_3)),
             l5=L.Convolution2D(self.block2_nfilters_3, self.block2_nfilters_4, (1, self.block2_patch_size_4)),
             l6=L.Linear(None, 100),
-            l7=L.Linear(100, 1)
+            l7=L.Linear(100, n_classes)
         )
 
     def __call__(self, x):
         # print(x.shape)
-        h = self.calculate(x)
+        h = self.calculate_common_links(x)
+        h = self.calculate_remaining_links(h)
         return h
 
     def calculate(self, x):
+        return self.__call__(x)
+
+    def calculate_common_links(self, x):
         h = self.l1(x)
         h = self.af_block1(h)
         split_h = F.split_axis(h, self.nbands, axis=1, force_tuple=True)
@@ -127,12 +81,49 @@ class Configuration1(Chain):
             h += (h1,)
         h = F.dstack(h)
         h = F.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
+        return h
+
+    def calculate_remaining_links(self, h):
+        h = self.l6(h)
+        h = self.af_block3_1(h)
+        h = self.af_block3_2(h)
+        h = self.l7(h)
+        # print(h,h.shape,'h')
+        # h = F.reshape(h, (h.shape[0],))
+        return h
+
+
+class Configuration2(Chain):
+    def __init__(self, model1):
+        self.model1 = copy.deepcopy(model1)
+        self.af_block3_1 = model1.af_block3_1
+        self.af_block3_2 = model1.af_block3_2
+        self.threshold = 0.5
+        self.auc = None
+        super(Configuration2, self).__init__(
+            l6=L.Linear(None, 100),
+            l7=L.Linear(100, 1)
+        )
+
+    def __call__(self, x):
+        with chainer.configuration.using_config('enable_backprop', False):
+            h_fixed = self.model1.calculate_common_links(x)
+        h = Variable(np.array(h_fixed.data))
+        with chainer.configuration.using_config('enable_backprop', True):
+            h = self.calculate_remaining_links(h)
+        return h
+
+    def calculate(self, x):
+        return self.__call__(x)
+
+    def calculate_remaining_links(self, h):
         h = self.l6(h)
         h = self.af_block3_1(h)
         h = self.af_block3_2(h)
         h = self.l7(h)
         h = F.reshape(h, (h.shape[0],))
         return h
+
 
 
 def shuffle_data(X_tr, Y_tr, X_te, Y_te):
@@ -142,6 +133,24 @@ def shuffle_data(X_tr, Y_tr, X_te, Y_te):
     X_te, Y_te = X_te[perm], Y_te[perm]
     return (X_tr, Y_tr), (X_te, Y_te)
 
+class SoftmaxClassifier(chainer.Chain):
+    """Classifier is for calculating loss, from predictor's output.
+    predictor is a model that predicts the probability of each label.
+    """
+    def __init__(self, predictor):
+        super(SoftmaxClassifier, self).__init__()
+        with self.init_scope():
+            self.predictor = predictor
+
+    def __call__(self, x, t):
+        y = self.predictor(x)
+        # print(y.shape, "y_shape",t.shape,"t_shape")
+        # print(y,t)
+        self.loss = F.softmax_cross_entropy(y, t)
+        self.accuracy = F.accuracy(y, t)
+        return self.loss
+
+
 class SigmoidClassifier(chainer.Chain):
     """Classifier is for calculating loss, from predictor's output.
     predictor is a model that predicts the probability of each label.
@@ -149,6 +158,7 @@ class SigmoidClassifier(chainer.Chain):
     def __init__(self, predictor):
         super(SigmoidClassifier, self).__init__()
         with self.init_scope():
+            print(predictor)
             self.predictor = predictor
 
     def __call__(self, x, t):
@@ -180,103 +190,16 @@ def get_accuracy(model, x, t):
     tn, fp, fn, tp = confusion_matrix(t, h).ravel()
     return precision, recall, (tn, fp, fn, tp)
 
+def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
+    print(X_cluster.shape)
+    channels = X_cluster.shape[1]
+    n_classes = np.max(Y_cluster) + 1
+    model = Configuration1(channels, n_classes=n_classes)
 
-def load_saved_data():
-    mat = scipy.io.loadmat("mldata/Indian_pines_Binary_Full_Train_patch_3.mat")
-    X_tr = mat["train_patch"]
-    Y_tr = mat["train_labels"]
-    mat = scipy.io.loadmat("mldata/Indian_pines_Binary_Test_patch_3.mat")
-    X_te = mat["test_patch"]
-    Y_te = mat["test_labels"]
-    Y_te = np.reshape(Y_te, (Y_te.shape[0] * Y_te.shape[1]))
-    Y_tr = np.reshape(Y_tr, (Y_tr.shape[0] * Y_tr.shape[1]))
-    return (X_tr, Y_tr), (X_te, Y_te)
-
-def run_classification():
-    (X_tr, Y_tr), (X_te, Y_te) = load_saved_data()
-    (X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
-
-    channels = X_tr.shape[1]
-    model = Configuration1(channels)
-    # model = MultiLayerPerceptron()
-
-    train = (X_tr, Y_tr)
+    train = (X_cluster, Y_cluster)
     test = (X_te, Y_te)
 
-    batchsize = Config.batchsize
-    n_epoch = Config.epoch
-
-    N = len(train[1])  # training data size
-    N_test = len(test[1])
-    classifier_model = SigmoidClassifier(model)
-    optimizer = optimizers.Adam()
-    optimizer.setup(classifier_model)
-    out = 'result'
-    # Learning loop
-    for epoch in six.moves.range(1, n_epoch + 1):
-        print('epoch', epoch)
-
-        # training
-        perm = np.random.permutation(N)
-        sum_accuracy = 0
-        sum_loss = 0
-        start = time.time()
-        for i in six.moves.range(0, N, batchsize):
-            x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]],dtype=np.float32))
-            t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]],dtype=np.int32))
-            # Pass the loss function (Classifier defines it) and its arguments
-            optimizer.update(classifier_model, x, t)
-
-            if epoch == 1 and i == 0:
-                with open('{}/graph.dot'.format(out), 'w') as o:
-                    g = computational_graph.build_computational_graph(
-                        (classifier_model.loss,))
-                    o.write(g.dump())
-                print('graph generated')
-
-            sum_loss += float(classifier_model.loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-        end = time.time()
-        elapsed_time = end - start
-        throughput = N / elapsed_time
-        print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
-            sum_loss / N, sum_accuracy / N, throughput))
-
-        # evaluation
-        sum_accuracy = 0
-        sum_loss = 0
-        for i in six.moves.range(0, N_test, batchsize):
-            index = np.asarray(list(range(i, i + batchsize)))
-            x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
-            t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
-            with chainer.no_backprop_mode():
-                # When back propagation is not necessary,
-                # we can omit constructing graph path for better performance.
-                # `no_backprop_mode()` is introduced from chainer v2,
-                # while `volatile` flag was used in chainer v1.
-                loss = classifier_model(x, t)
-            sum_loss += float(loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-
-        print('test  mean loss={}, accuracy={}'.format(
-            sum_loss / N_test, sum_accuracy / N_test))
-
-    precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
-    # print("accuracy", accuracy)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
-    # test data size
-    return precision, recall, (tn, fp, fn, tp)
-
-
-def train(X_tr, Y_tr, X_te, Y_te):
-    channels = X_tr.shape[1]
-    model = Configuration1(channels)
-    # model = MultiLayerPerceptron()
-
-    train = (X_tr, Y_tr)
-    test = (X_te, Y_te)
-
-    batchsize = Config.batchsize
+    batchsize = 1000
     n_epoch = Config.epoch
 
     N = len(train[1])  # training data size
@@ -316,6 +239,44 @@ def train(X_tr, Y_tr, X_te, Y_te):
         print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
             sum_loss / N, sum_accuracy / N, throughput))
 
+    batchsize = Config.batchsize
+    train = (X_tr2, Y_tr2)
+    N = len(train[1])
+    model_2nd_stage = Configuration2(model)
+    classifier_model_2nd_stage = SigmoidClassifier(model_2nd_stage)
+    optimizer_2nd_stage = optimizers.Adam()
+    optimizer_2nd_stage.setup(classifier_model_2nd_stage)
+    # Learning loop
+    for epoch in six.moves.range(1, n_epoch + 1):
+        print('epoch', epoch)
+
+        # training
+        perm = np.random.permutation(N)
+        sum_accuracy = 0
+        sum_loss = 0
+        start = time.time()
+        for i in six.moves.range(0, N, batchsize):
+            x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]], dtype=np.float32))
+            t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]], dtype=np.int32))
+            # Pass the loss function (Classifier defines it) and its arguments
+            optimizer_2nd_stage.update(classifier_model_2nd_stage, x, t)
+
+            if epoch == 1 and i == 0:
+                with open('{}graph.dot'.format(out), 'w') as o:
+                    g = computational_graph.build_computational_graph(
+                        (classifier_model_2nd_stage.loss,))
+                    o.write(g.dump())
+                print('graph generated')
+
+            sum_loss += float(classifier_model_2nd_stage.loss.data) * len(t.data)
+            sum_accuracy += float(classifier_model_2nd_stage.accuracy.data) * len(t.data)
+        # do cross validation and thresholding here
+        end = time.time()
+        elapsed_time = end - start
+        throughput = N / elapsed_time
+        print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
+            sum_loss / N, sum_accuracy / N, throughput))
+
         # evaluation
         sum_accuracy = 0
         sum_loss = 0
@@ -328,20 +289,16 @@ def train(X_tr, Y_tr, X_te, Y_te):
                 # we can omit constructing graph path for better performance.
                 # `no_backprop_mode()` is introduced from chainer v2,
                 # while `volatile` flag was used in chainer v1.
-                loss = classifier_model(x, t)
+                loss = classifier_model_2nd_stage(x, t)
             sum_loss += float(loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+            sum_accuracy += float(classifier_model_2nd_stage.accuracy.data) * len(t.data)
 
         print('test  mean loss={}, accuracy={}'.format(
             sum_loss / N_test, sum_accuracy / N_test))
-        predicted_output  = utils.get_output_by_activation(model, X_te)
+        predicted_output  = utils.get_output_by_activation(model_2nd_stage, X_te)
         precision, recall, _ = utils.get_model_stats(predicted_output, Y_te)
         print('test precision={}, recall={}'. format(precision, recall))
 
-    # precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
-    # print("accuracy", accuracy)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
-    # test data size
-    return model
+    return model_2nd_stage
 
 # run_classification()

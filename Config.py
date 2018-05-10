@@ -1,6 +1,6 @@
 #NNPU config
 batchsize = 100
-epoch = 400
+epoch = 100
 loss = 'sigmoid_cross_entropy'
 model = 'bass_net'
 gamma = 1.
@@ -11,8 +11,9 @@ output_layer_activation = 'sigmoid'
 # Zero-origin GPU ID (negative value indicates CPU)
 gpu = -1
 unlabeled_tag = 0
-default_positive_prior = 0.5
+default_positive_prior = 0.33
 PATCH_SIZE = 3
+nbands = 10
 # Data name Can be Indian_pines, Salinas, PaviaU
 data = "Indian_pines"
 url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
@@ -24,7 +25,8 @@ type_1_train_pos_labelled_percentage = 60
 type_1_train_pos_percentage = 10
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
-type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+# type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+type_1_pos_neg_ratio_in_train = [0.33]
 type_1_cross_pos_percentage = 7
 type_1_pos_neg_ratio_in_cross = 1
 """ 
@@ -40,6 +42,8 @@ is_random_neg = True
 # Note: Class labels should be present in groundtooth image
 # include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 type_1_include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
+    # [2, 0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    # [2, 3, 5, 6, 8, 10, 11, 12, 14]
 # type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
 """Test type 2 config"""

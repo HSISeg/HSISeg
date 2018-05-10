@@ -1,17 +1,17 @@
-import json,os,sys,traceback,django
+import os, django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "HSISeg.settings")
 django.setup()
 import numpy as np
-import scipy.ndimage
-import scipy.io as io
-import os, Config, importlib
+import Config, importlib
 from algo import image_helper as ih
+from semiSuper.PU_exp import run as run_PU
 import preprocess_data
 from algo import centroid_init
 from algo import algo_default_params as cluster_default_params
 from algo import pdhg_weight
-from semiSuper.PN_semi_cluster_dist_sample import run_cluster_dist as run_PN_cluster_dist
-from semiSuper.PN_semi_cluster_dist_sample import run_cluster as run_PN_cluster
+from semiSuper.PN_semi_cluster_dist_exp import run_PN_on_cluster_dist_sampling
+from semiSuper.PN_semi_cluster_dist_exp import run_PN_on_dist_sampling
+from semiSuper.PN_multi_step_exp import run_cluster_dist as run_cluster_dist_multi_step
 
 PATCH_SIZE = Config.PATCH_SIZE
 data = Config.data
@@ -78,7 +78,8 @@ except:
     clust_labelled_img = res['L']
 clust_labelled_img = np.asarray(clust_labelled_img, dtype = np.int32)
 
-run_PN_cluster_dist(clust_labelled_img, preprocessed_img, target_mat)
-
-run_PN_cluster(clust_labelled_img, preprocessed_img, target_mat)
+run_cluster_dist_multi_step(clust_labelled_img, preprocessed_img, target_mat)
+# run_PN_on_cluster_dist_sampling(clust_labelled_img, preprocessed_img, target_mat)
+#
+# run_PN_on_dist_sampling(clust_labelled_img, preprocessed_img, target_mat)
 
