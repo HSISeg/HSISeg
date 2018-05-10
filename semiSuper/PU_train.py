@@ -133,9 +133,9 @@ def train(XYtrain, XYtest, prior):
         ['epoch', 'nnPU/loss', 'test/nnPU/error','test/nnPU/precision', 'test/nnPU/recall', 'elapsed_time']))
     if extensions.PlotReport.available():
         trainer.extend(
-            extensions.PlotReport(['nnPU/loss'], 'epoch', file_name=f'training_error.png'))
+            extensions.PlotReport(['nnPU/loss'], 'epoch', file_name='training_error.png'))
         trainer.extend(
-            extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name=f'test_error.png'))
+            extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name='test_error.png'))
     print("prior: {}".format(prior))
     print("stepsize: {}".format(stepsize))
     print("loss: {}".format(loss))
