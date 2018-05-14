@@ -54,7 +54,7 @@ def run_cluster_dist(clust_labelled_img, data_img, labelled_img):
                         precision = precision, recall = recall, true_pos = tp, true_neg = tn, false_pos = fp, false_neg = fn, test_type = test_name,
                         exclude_class_indx = ",".join([str(i) for i in exclude_list]), no_train_pos_labelled = int(len(train2_lp_pixels[0])),
                             no_train_pos_unlabelled = int(len(train2_up_pixels[0])), no_train_neg_unlabelled = int(len(train2_un_pixels[0])),
-                            train_pos_neg_ratio = ratio, threshold = model.threshold, auc = model.auc, data_name = Config.data)
+                            train_pos_neg_ratio = ratio, threshold = model.threshold, auc = model.auc, data_name = Config.data, visual_result_filename=visual_result_filename)
 
 
 

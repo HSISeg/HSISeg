@@ -62,7 +62,7 @@ def run(clust_labelled_img, data_img, labelled_img):
                                            no_train_pos_unlabelled=int(len(train_up_pixels[0])),
                                            no_train_neg_unlabelled=int(len(train_un_pixels[0])),
                                            train_pos_neg_ratio=ratio, threshold=model.threshold, auc=model.auc,
-                                           data_name=Config.data)
+                                           data_name=Config.data,visual_result_filename=visual_result_filename)
 
 if __name__ == '__main__':
     run(None, None, None)
