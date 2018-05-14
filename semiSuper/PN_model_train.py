@@ -281,7 +281,7 @@ def train(X_tr, Y_tr, X_te, Y_te):
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = SoftmaxClassifier(model)
+    classifier_model = SigmoidClassifier(model)
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out

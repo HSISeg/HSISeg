@@ -18,7 +18,7 @@ def run(clust_labelled_img, data_img, labelled_img):
         neg_class_list = copy.copy(list(set(include_class_list)))
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
-            for ratio in [0.33]:
+            for ratio in Config.type_1_pos_neg_ratio_in_train:
                 test_name = Config.data + 'cluster_dist_PU_'+str(ratio)
                 if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, True):
                     if clust_labelled_img is None or data_img is None or labelled_img is None:
