@@ -26,13 +26,13 @@ url2 = "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat"
 """test type 1 config"""
 type_1_train_pos_labelled_percentage = 60
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
-type_1_train_pos_percentage = 7
+type_1_train_pos_percentage = 10
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
 # type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
 type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
 # type_1_pos_neg_ratio_in_train = [1]
-type_1_cross_pos_percentage = 5
+type_1_cross_pos_percentage = 7
 type_1_pos_neg_ratio_in_cross = 1
 """ 
 boolean value to indicate the way of selection for negative unlabelled training data,
