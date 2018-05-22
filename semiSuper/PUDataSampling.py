@@ -79,14 +79,18 @@ def get_exclude_pixels(pos_class_list, neg_class_list, gt_labelled_img):
     exclude_pixels = np.logical_not(np.isin(gt_labelled_img, list(set(pos_class_list).union(set(neg_class_list)))))
     return exclude_pixels
 
-def get_unlabelled_pixels(exclude_pixels, weight, pos_neg_ratio_in_cross, train_lp_pixels, cross_pos_pixels):
+def get_unlabelled_pixels(exclude_pixels, weight, train_lp_pixels, cross_pos_pixels, labelled_img, pos_class_list):
     n_cross_pos_pixels = len(cross_pos_pixels[0])
-    n_unlabelled_cross = int(n_cross_pos_pixels // pos_neg_ratio_in_cross)
+    n_pos_pixels = len(np.where(np.isin(labelled_img, pos_class_list) == True) [0])
     indx = np.zeros(weight.shape, dtype=np.bool)
     indx[exclude_pixels] = True
     indx[train_lp_pixels] = True
     indx[cross_pos_pixels] = True
     elements = np.where(indx == False)
+    # this can be calculated if n_unlabelled_positive / n_unlabelled ratio is given
+    pos_neg_ratio_in_cross = n_pos_pixels / (len(elements[0]) + len(train_lp_pixels[0]) + len(cross_pos_pixels[0]) - n_pos_pixels)
+    n_unlabelled_cross = int(n_cross_pos_pixels // pos_neg_ratio_in_cross)
+
     if n_unlabelled_cross > len(elements[0]):
         raise ValueError(
             " can't sample unlabelled training and cross data from rest of the image to maintain the ratio ")
@@ -124,9 +128,8 @@ def get_PU_data(pos_class_list, neg_class_list, data_img, gt_labelled_img, clust
                                                        cross_pos_percentage)
     final_weight = get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based)
     exclude_pixels = get_exclude_pixels(pos_class_list, neg_class_list, gt_labelled_img)
-    train_unlabelled_indx, cross_unlabelled_indx = get_unlabelled_pixels(exclude_pixels, final_weight,
-                                                                         pos_neg_ratio_in_cross, train_lp_pixels,
-                                                                         cross_pos_pixels)
+    train_unlabelled_indx, cross_unlabelled_indx = get_unlabelled_pixels(exclude_pixels, final_weight, train_lp_pixels,
+                                                                         cross_pos_pixels, gt_labelled_img, pos_class_list)
     train_up_pixels, train_un_pixels = get_train_unlabelled_dist(gt_labelled_img, pos_class_list, train_unlabelled_indx)
     trainX, trainY = get_binary_data(train_lp_pixels, train_unlabelled_indx, data_img)
     crossX, crossY = get_binary_data(cross_pos_pixels, cross_unlabelled_indx, data_img)
@@ -135,9 +138,11 @@ def get_PU_data(pos_class_list, neg_class_list, data_img, gt_labelled_img, clust
     test_pos_pixels, test_neg_pixels = get_test_pixels(exclude_pixels, train_lp_pixels, cross_pos_pixels, gt_labelled_img, pos_class_list)
     testX, testY = get_binary_data(test_pos_pixels, test_neg_pixels, data_img)
     XYtrain = list(zip(trainX, trainY))
-    prior = Config.default_positive_prior
+    # prior = Config.default_positive_prior
+    prior = len(train_up_pixels[0]) / (len(train_un_pixels[0]) + len(train_up_pixels[0])) # should provide this value
     testX, testY, shuffled_test_pixels = shuffle_test_data(testX, testY, test_pos_pixels, test_neg_pixels)
     XYtest = list(zip(testX, testY))
     return (XYtrain, XYtest, prior, testX, testY, trainX, trainY, crossX, crossY), \
            (train_lp_pixels, train_up_pixels, train_un_pixels, test_pos_pixels, test_neg_pixels, shuffled_test_pixels)
 
+# a - x /a + b -x
