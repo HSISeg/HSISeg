@@ -202,12 +202,13 @@ def fuzzy_c_means(data,beta,initial_centroids,m,terminating_mean_error,alpha_w,a
 		pid_element.status_text = 'Segmentation going on...'
 		pid_element.save()
 		V = get_cluster_prototypes(U,data,m,cluster_number)
-		ih.save_output(L_new,V,output_path + "_" + str(n-1) + ".pickle")
+		# ih.save_output(L_new,V,output_path + "_" + str(n-1) + ".pickle")
 		D = get_dissimilarity_matrix(U,V,data,n,error_list,beta,alpha_w,alpha_e_avg_t,alpha_n0,maxconn)
 		U = update_U(U,D,m)
 		L = L_new
 		L_new = assing_classes(U)
 		ih.save_image(L_new,output_path + "_" + str(n) + ".jpeg",colors)
+		ih.save_output_dict({'L': L, 'cluster_centres': V, 'U': U}, output_path + "_data_" + str(n-1) + ".pickle")
 		mean_error = get_segmentation_error(L,L_new,data)
 		error_list.append(mean_error)
 

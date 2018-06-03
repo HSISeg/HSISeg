@@ -62,6 +62,7 @@ def get_preprocessed_data():
     try:
         res = ih.get_pickle_object_as_numpy(cluster_img_pickle_file_path)
         clust_labelled_img = res['L']
+        # clust_prob_labelled_img = res['U']
     except:
         params['weight_pickle_file_path'] = weight_pickle_file_path
         params['centroid_pickle_file_path'] = centroid_pickle_file_path
@@ -70,5 +71,7 @@ def get_preprocessed_data():
         main_func(image, cluster_number, output_path, maxconn, params, None)
         res = ih.get_pickle_object_as_numpy(cluster_img_pickle_file_path)
         clust_labelled_img = res['L']
+        # clust_prob_labelled_img = res['U']
+    clust_prob_labelled_img = None
     clust_labelled_img = np.asarray(clust_labelled_img, dtype=np.int32)
-    return clust_labelled_img, preprocessed_img, target_mat
+    return clust_labelled_img, clust_prob_labelled_img, preprocessed_img, target_mat

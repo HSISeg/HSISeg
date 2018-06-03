@@ -214,7 +214,8 @@ def pdhg_linear(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,oute
 		uhard = threshold_u(u)
 		endmem = calculate_centroid(uhard,cluster_no,endmem,image_2d)
 		L = assing_classes(uhard,m,n)
-		ih.save_output(L, endmem, output_path + "_data_" + str(outer_index) + ".pickle")
+		ih.save_output_dict({'L':L,'cluster_centres':endmem, 'U': uhard}, output_path + "_data_" + str(outer_index) + ".pickle")
+		# ih.save_output(L, endmem, output_path + "_data_" + str(outer_index) + ".pickle")
 		ih.save_image(L,output_path + "_image_" + str(outer_index) + ".jpeg",colors)
 		stop = get_stop(uhard_old,uhard,r)
 		uhard_old = uhard

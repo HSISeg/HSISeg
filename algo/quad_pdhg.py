@@ -182,6 +182,7 @@ def pdhg_quad(image,W,mu,endmem,lamda,tao,sigma,theta,iter_stop,innerloop,outerl
 		uhard = threshold_u(u.transpose(),maxconn)
 		endmem = calculate_centroid(uhard,cluster_no,endmem,image_2d)
 		L = assing_classes(uhard,m,n)
+		ih.save_output_dict({'L': L, 'cluster_centres': endmem, 'U': uhard}, output_path + "_data_" + str(outer_index) + ".pickle")
 		ih.save_image(L,output_path + "_" + str(outer_index) + ".jpeg",colors)
 		stop = get_stop(uhard_old,uhard,r)
 		uhard_old = uhard

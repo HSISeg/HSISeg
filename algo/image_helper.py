@@ -66,6 +66,11 @@ def get_pickle_object_as_numpy(pickle_object_path):
 		picke_data = pickle.load(fp)
 	return picke_data
 
+def save_output_dict(M,output_path):
+	with open(output_path, "wb") as fp:
+		pickle.dump(M, fp, protocol=pickle.HIGHEST_PROTOCOL)
+	return
+
 def save_output(L,cluster_centres,output_path):
 	M = {'L':L,'cluster_centres':cluster_centres}
 	with open(output_path, "wb") as fp:

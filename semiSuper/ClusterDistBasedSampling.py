@@ -48,7 +48,7 @@ def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cr
     for i in range(n_classes):
         class_pixels = clust_labelled_img == i
         final_prob[class_pixels] = dist[class_pixels] * clust_sel_prob[i]
-    final_prob = 1 / (1+np.exp(-final_prob))
+    # final_prob = 1 / (1+np.exp(-final_prob))
     final_prob = 1 - final_prob
     # print(final_prob, np.where(final_prob < 0))
         # final_prob[class_pixels] += clust_sel_prob[i]
