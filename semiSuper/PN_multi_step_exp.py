@@ -15,7 +15,7 @@ def run_cluster_dist(clust_labelled_img, data_img, labelled_img):
         neg_class_list.remove(pos_class)
         if len(neg_class_list) > 0:
             for ratio in Config.type_1_pos_neg_ratio_in_train:
-                test_name = 'cluster_dist_multi_step_PN'
+                test_name = 'cluster_dist_multi_step_PN_refactored'
                 if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False):
                     if clust_labelled_img is None or data_img is None or labelled_img is None:
                         data_img, labelled_img = utils.load_preprocessed_data()

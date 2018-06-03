@@ -151,7 +151,8 @@ class BassNet(MyClassifier, Chain):
         self.nbands = Config.nbands
         self.prior = prior
         self.input_channels = channels
-        self.band_size = self.block1_nfilters/self.nbands
+        self.band_size = [(a + 1) * (channels // self.nbands) for a in range(0, self.nbands - 1)]
+        # self.band_size = self.block1_nfilters/self.nbands
         self.threshold = 0.5
         self.auc = None
         self.loss_func_name = loss_func_name
@@ -171,7 +172,7 @@ class BassNet(MyClassifier, Chain):
         # print(x.dtype)
         h = self.l1(x)
         h = self.af_block1(h)
-        split_h = F.split_axis(h, self.nbands, axis=1, force_tuple=True)
+        split_h = F.split_axis(h, self.band_size, axis=1, force_tuple=True)
         h = ()
         for h1 in split_h:
             h1 = F.swapaxes(h1, axis1=1, axis2=3)

@@ -60,7 +60,7 @@ class MultiLayerPerceptron(Chain):
         return h
 
 
-class Configuration1(Chain):
+class BassNet(Chain):
     def __init__(self, channels):
         self.block1_nfilters = channels
         self.block1_patch_size = 1
@@ -89,10 +89,11 @@ class Configuration1(Chain):
 
         self.nbands = Config.nbands
         self.input_channels = channels
-        self.band_size = self.block1_nfilters // self.nbands
+        # self.band_size = self.block1_nfilters // self.nbands
+        self.band_size = [(a+1) * (channels // self.nbands) for a in range(0,self.nbands - 1)]
         self.threshold = 0.5
         self.auc = None
-        super(Configuration1, self).__init__(
+        super(BassNet, self).__init__(
             l1=L.Convolution2D(channels, self.block1_nfilters, self.block1_patch_size),
             l2=L.Convolution2D(self.image_length, self.block2_nfilters_1, (self.image_width, self.block2_patch_size_1)),
             l3=L.Convolution2D(self.block2_nfilters_1, self.block2_nfilters_2, (1, self.block2_patch_size_2)),
@@ -110,7 +111,7 @@ class Configuration1(Chain):
     def calculate(self, x):
         h = self.l1(x)
         h = self.af_block1(h)
-        split_h = F.split_axis(h, self.nbands, axis=1, force_tuple=True)
+        split_h = F.split_axis(h, self.band_size, axis=1, force_tuple=True)
         h = ()
         for h1 in split_h:
             h1 = F.swapaxes(h1, axis1=1, axis2=3)
@@ -125,7 +126,7 @@ class Configuration1(Chain):
             h1 = self.af_block2_4(h1)
             h1 = F.reshape(h1, (h1.shape[0], h1.shape[1] * h1.shape[3], h1.shape[2]))
             h += (h1,)
-        h = F.dstack(h)
+        h = F.stack(h, axis=1)
         h = F.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
         h = self.l6(h)
         h = self.af_block3_1(h)
@@ -197,7 +198,7 @@ def run_classification():
     (X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
 
     channels = X_tr.shape[1]
-    model = Configuration1(channels)
+    model = BassNet(channels)
     # model = MultiLayerPerceptron()
 
     train = (X_tr, Y_tr)
@@ -270,7 +271,7 @@ def run_classification():
 
 def train(X_tr, Y_tr, X_te, Y_te):
     channels = X_tr.shape[1]
-    model = Configuration1(channels)
+    model = BassNet(channels)
     # model = MultiLayerPerceptron()
 
     train = (X_tr, Y_tr)
@@ -317,23 +318,23 @@ def train(X_tr, Y_tr, X_te, Y_te):
             sum_loss / N, sum_accuracy / N, throughput))
 
         # evaluation
-        sum_accuracy = 0
-        sum_loss = 0
-        for i in six.moves.range(0, N_test, batchsize):
-            index = np.asarray(list(range(i, i + batchsize)))
-            x = chainer.Variable(np.asarray(test[0][i:i + batchsize], dtype=np.float32))
-            t = chainer.Variable(np.asarray(test[1][i:i + batchsize], dtype=np.int32))
-            with chainer.no_backprop_mode():
-                # When back propagation is not necessary,
-                # we can omit constructing graph path for better performance.
-                # `no_backprop_mode()` is introduced from chainer v2,
-                # while `volatile` flag was used in chainer v1.
-                loss = classifier_model(x, t)
-            sum_loss += float(loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-
-        print('test  mean loss={}, accuracy={}'.format(
-            sum_loss / N_test, sum_accuracy / N_test))
+        # sum_accuracy = 0
+        # sum_loss = 0
+        # for i in six.moves.range(0, N_test, batchsize):
+        #     index = np.asarray(list(range(i, i + batchsize)))
+        #     x = chainer.Variable(np.asarray(test[0][i:i + batchsize], dtype=np.float32))
+        #     t = chainer.Variable(np.asarray(test[1][i:i + batchsize], dtype=np.int32))
+        #     with chainer.no_backprop_mode():
+        #         # When back propagation is not necessary,
+        #         # we can omit constructing graph path for better performance.
+        #         # `no_backprop_mode()` is introduced from chainer v2,
+        #         # while `volatile` flag was used in chainer v1.
+        #         loss = classifier_model(x, t)
+        #     sum_loss += float(loss.data) * len(t.data)
+        #     sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+        #
+        # print('test  mean loss={}, accuracy={}'.format(
+        #     sum_loss / N_test, sum_accuracy / N_test))
         predicted_output  = utils.get_output_by_activation(model, X_te)
         precision, recall, _ = utils.get_model_stats(predicted_output, Y_te)
         print('test precision={}, recall={}'. format(precision, recall))

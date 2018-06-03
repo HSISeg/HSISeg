@@ -1,3 +1,22 @@
+# class A:
+# 	data = None
+# 	def __init__(self, data):
+# 		self.data = data
+#
+# opt = A("Indian_pines")
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data', type=str, default='Indian_pines')
+opt = parser.parse_args()
+
+data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat",
+                                     "url2": "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat", "include_class_list" :[2, 3, 5, 6, 8, 10, 11, 12, 14]},
+                     "Salinas": {"data_key": "salinas", "nbands": 8, "url1": "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat",
+                                     "url2": "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat", "include_class_list" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]},
+                    "PaviaU": {"data_key": "paviaU", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat",
+                                     "url2": "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat", "include_class_list" : [1, 2, 3, 4, 5, 6, 7, 8, 9]},
+                    }
 #NNPU config
 batchsize = 100
 epoch = 100
@@ -13,15 +32,22 @@ gpu = -1
 unlabeled_tag = 0
 default_positive_prior = 0.33
 PATCH_SIZE = 3
-nbands = 8
+nbands = data_based_config[opt.data]["nbands"]
 # Data name Can be Indian_pines, Salinas, PaviaU
-# data = "Indian_pines"
-data = "Salinas"
+data = opt.data
+data_key = data_based_config[opt.data]["data_key"]
+url1 = data_based_config[opt.data]["url1"]
+url2 = data_based_config[opt.data]["url2"]
+# data = "PaviaU"
+# data_key = "paviaU"
+# data = "Salinas"
 # For Salinas
-url1 = "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat"
-url2 = "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat"
+# url1 = "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat"
+# url2 = "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat"
 # url1 = "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat"
 # url2 = "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat"
+# url1 = "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat"
+# url2 = "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat"
 
 """test type 1 config"""
 type_1_train_pos_labelled_percentage = 60
@@ -30,7 +56,8 @@ type_1_train_pos_percentage = 10
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
 # type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
-type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+# type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+type_1_pos_neg_ratio_in_train = [0.33]
 # type_1_pos_neg_ratio_in_train = [1]
 type_1_cross_pos_percentage = 7
 type_1_pos_neg_ratio_in_cross = 1
@@ -45,8 +72,10 @@ is_random_neg = True
 
 # class label included in this test, negative class  = list(set(include_class_list) - set(positive_class))
 # Note: Class labels should be present in groundtooth image
-type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+# type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 # type_1_include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
+type_1_include_class_list = data_based_config[opt.data]["include_class_list"]
+# type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     # [2, 0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     # [2, 3, 5, 6, 8, 10, 11, 12, 14]
 # type_1_include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]

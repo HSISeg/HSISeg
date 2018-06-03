@@ -7,20 +7,21 @@ PATCH_SIZE = Config.PATCH_SIZE
 data = Config.data
 url1 = Config.url1
 url2 = Config.url2
-
+data_key = Config.data_key
 
 def download_and_save_data():
     try:
         print(data)
-        input_mat = io.loadmat(Config.out + data + '.mat')[data.lower()]
-        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data.lower() + '_gt']
-    except:
+        input_mat = io.loadmat(Config.out + data + '.mat')[data_key]
+        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data_key + '_gt']
+    except Exception as e:
         os.system('wget' + ' -O ' + Config.out + data + '.mat' + ' ' + url1)
         os.system('wget' + ' -O ' + Config.out + data + '_gt.mat' + ' ' + url2)
-        input_mat = io.loadmat(Config.out + data + '.mat')[data.lower()]
-        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data.lower() + '_gt']
+        input_mat = io.loadmat(Config.out + data + '.mat')[data_key]
+        target_mat = io.loadmat(Config.out + data + '_gt.mat')[data_key + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
     input_mat = np.asarray(input_mat, dtype=np.float32)
+    # if data == "PaviaU":
     return input_mat, target_mat
 
 
