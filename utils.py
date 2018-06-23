@@ -158,11 +158,11 @@ def check_if_test_done(pos_class, test_type, neg_class):
     conn.close()
     return False
 
-def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU):
+def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU, index):
     if isPU:
-        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type)
+        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index)
     else:
-        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type)
+        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index)
     if rows:
         return True
     return False

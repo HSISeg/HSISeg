@@ -35,6 +35,7 @@ class PUstats(models.Model):
 	threshold = models.FloatField(blank=True, null=True)
 	auc = models.FloatField(blank=True, null=True)
 	data_name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
+	experiment_number = models.CharField(max_length=10, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PUstats'
@@ -60,6 +61,7 @@ class PNstats(models.Model):
 	threshold = models.FloatField(blank=True, null=True)
 	auc = models.FloatField(blank=True, null=True)
 	data_name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
+	experiment_number = models.CharField(max_length=10, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PNstats'
