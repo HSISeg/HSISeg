@@ -4,7 +4,7 @@ django.setup()
 from semiSuper.PUDataSampling import get_PU_data
 from semiSuper.PU_train import train as train_PU
 import utils
-from visual_results import generate_and_save_visualizations
+from semiSuper.visual_results import generate_and_save_visualizations
 import copy
 import Config
 import datetime

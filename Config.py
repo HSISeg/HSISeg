@@ -1,14 +1,14 @@
-# class A:
-# 	data = None
-# 	def __init__(self, data):
-# 		self.data = data
-#
-# opt = A("Indian_pines")
-import argparse
+class A:
+	data = None
+	def __init__(self, data):
+		self.data = data
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--data', type=str, default='Indian_pines')
-opt = parser.parse_args()
+opt = A("Indian_pines")
+# import argparse
+
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--data', type=str, default='Indian_pines')
+# opt = parser.parse_args()
 
 data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat",
                                      "url2": "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat", "include_class_list" :[2, 3, 5, 6, 8, 10, 11, 12, 14]},
