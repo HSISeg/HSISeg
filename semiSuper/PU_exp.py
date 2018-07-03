@@ -14,7 +14,7 @@ import numpy as np
 def run(clust_labelled_img, data_img, labelled_img):
     # cross validation ratio change
     include_class_list = Config.type_1_include_class_list
-    for i in xrange(0, Config.experiment_number):
+    for i in range(0, Config.experiment_number):
         for pos_class in include_class_list:
             neg_class_list = copy.copy(list(set(include_class_list)))
             neg_class_list.remove(pos_class)

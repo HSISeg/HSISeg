@@ -34,11 +34,11 @@ def get_data_from_image(image_path):
 # 		dataset = gdal.Open(image_path,gdal.GA_ReadOnly)
 # 		col = dataset.RasterXSize
 # 		row = dataset.RasterYSize
-# 		a = [[[]for y in xrange(col)] for z in xrange(row)]
-# 		for i in xrange(1,dataset.RasterCount + 1):
+# 		a = [[[]for y in range(col)] for z in range(row)]
+# 		for i in range(1,dataset.RasterCount + 1):
 # 			band = dataset.GetRasterBand(i).ReadAsArray()
-# 			for m in xrange(0,row):
-# 				for n in xrange(0,col):
+# 			for m in range(0,row):
+# 				for n in range(0,col):
 # 					a[m][n].append(band[m][n])
 # 		M = np.array(a,dtype='uint16')
 	else:
