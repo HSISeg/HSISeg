@@ -51,6 +51,7 @@ url2 = data_based_config[opt.data]["url2"]
 
 """test type 1 config"""
 type_1_train_pos_labelled_percentage = 60
+
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
 type_1_train_pos_percentage = 10
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
