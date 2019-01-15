@@ -1,4 +1,4 @@
-To run it create a virtualenv with python 3
+To run it create a virtualenv with python 3 and activate it
 run pip3 install -r requirement.txt
 run python3 manage.py migrate
 Now open the following files
