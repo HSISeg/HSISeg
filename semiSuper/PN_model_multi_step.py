@@ -9,6 +9,7 @@ from chainer import computational_graph
 import chainer.links as L
 from chainer import Chain, cuda
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+from semiSuper.tanh_cross_entropy import TanhCrossEntropy
 
 class BassNet(Chain):
     def __init__(self, channels, n_classes = 1):
@@ -151,6 +152,20 @@ class SoftmaxClassifier(chainer.Chain):
         self.accuracy = F.accuracy(y, t)
         return self.loss
 
+class TanhClassifier(chainer.Chain):
+    def __init__(self, predictor):
+        super(TanhClassifier, self).__init__()
+        with self.init_scope():
+            print(predictor)
+            self.predictor = predictor 
+
+    def __call__(self, x, t):
+        y = self.predictor(x)
+        # print(y.shape, "y_shape",t.shape,"t_shape")
+        # print(y,t)
+        self.loss = TanhCrossEntropy(y, t)
+        self.accuracy = F.binary_accuracy(y, t)
+        return self.loss
 
 class SigmoidClassifier(chainer.Chain):
     """Classifier is for calculating loss, from predictor's output.
@@ -159,7 +174,7 @@ class SigmoidClassifier(chainer.Chain):
     def __init__(self, predictor):
         super(SigmoidClassifier, self).__init__()
         with self.init_scope():
-            print(predictor)
+            # print(predictor)
             self.predictor = predictor
 
     def __call__(self, x, t):
@@ -192,7 +207,7 @@ def get_accuracy(model, x, t):
     return precision, recall, (tn, fp, fn, tp)
 
 def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
-    print(X_cluster.shape)
+    # print(X_cluster.shape)
     channels = X_cluster.shape[1]
     n_classes = np.max(Y_cluster) + 1
     model = BassNet(channels, n_classes=n_classes)
@@ -205,7 +220,7 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = SoftmaxClassifier(model)
+    classifier_model = TanhClassifier(model) 
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out

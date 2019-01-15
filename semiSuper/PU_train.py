@@ -14,10 +14,11 @@ from chainer import Variable, functions as F
 from chainer.training import extensions
 from semiSuper.PU_model import MultiLayerPerceptron, CNN, BassNet
 from semiSuper.pu_loss import PULoss
+from semiSuper.tanh_cross_entropy import tanh_cross_entropy
 
 
 def select_loss(loss_name):
-    losses = {"logistic": lambda x: F.softplus(-x), "sigmoid": lambda x: F.sigmoid(-x), "sigmoid_cross_entropy": F.sigmoid_cross_entropy}
+    losses = {"logistic": lambda x: F.softplus(-x), "sigmoid": lambda x: F.sigmoid(-x), "sigmoid_cross_entropy": F.sigmoid_cross_entropy, "tanh_cross_entropy":tanh_cross_entropy}
     return losses[loss_name]
 
 

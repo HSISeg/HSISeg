@@ -12,13 +12,15 @@ from algo.models import PNstats, PUstats
 
 def get_threshold(model, X, Y):
     xp = cuda.get_array_module(X, False)
-    if Config.output_layer_activation not in ['sigmoid', 'sign']:
+    if Config.output_layer_activation not in ['sigmoid', 'sign', 'tanh']:
         raise ValueError("Only support sigmoid or sign for last layer activation.")
     size = X.shape[0]
     with chainer.no_backprop_mode():
         with chainer.using_config("train", False):
             if Config.output_layer_activation == 'sigmoid':
                 h = xp.reshape(F.sigmoid(model.calculate(X)).data, size)
+            elif Config.output_layer_activation == 'tanh':
+                h = xp.reshape(F.tanh(model.calculate(X)).data, size)
             else:
                 h = xp.reshape(xp.sign(model.calculate(X).data), size)
 
@@ -45,13 +47,15 @@ def get_train_unlabelled_dist(labelled_img, pos_class_list, train_unlabelled_ind
 
 def get_output_by_activation(model, x):
     xp = cuda.get_array_module(x, False)
-    if Config.output_layer_activation not in ['sigmoid','sign']:
+    if Config.output_layer_activation not in ['sigmoid','sign', 'tanh']:
         raise ValueError("Only support sigmoid or sign for last layer activation.")
     size = x.shape[0]
     with chainer.no_backprop_mode():
         with chainer.using_config("train", False):
             if Config.output_layer_activation == 'sigmoid':
                 h = xp.reshape(F.sigmoid(model.calculate(x)).data, size)
+            elif Config.output_layer_activation == 'tanh':
+                h = xp.reshape(F.tanh(model.calculate(x)).data, size)
             else:
                 h = xp.reshape(xp.sign(model.calculate(x).data), size)
     if isinstance(h, chainer.Variable):
@@ -158,11 +162,11 @@ def check_if_test_done(pos_class, test_type, neg_class):
     conn.close()
     return False
 
-def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU, index):
+def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU, index, base, temp):
     if isPU:
-        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index)
+        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
     else:
-        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index)
+        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
     if rows:
         return True
     return False

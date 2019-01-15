@@ -2,7 +2,7 @@ import chainer.functions as F
 import numpy
 from chainer import cuda, function, Variable
 from chainer.utils import type_check
-
+ 
 
 class PULoss(function.Function):
     """wrapper of loss function for PU learning"""
@@ -41,8 +41,11 @@ class PULoss(function.Function):
         t_positive = numpy.ones(x.shape, dtype=numpy.int32) # For binary
         t_negative = numpy.zeros(x.shape, dtype=numpy.int32) # For binary
         if self.loss_func_name == "sigmoid_cross_entropy":
-            y_positive = self.loss_func(self.x_in, t_positive, reduce='no') # For binary
-            y_unlabeled = self.loss_func(self.x_in, t_negative, reduce='no') # For binary
+            y_positive = self.loss_func(self.x_in, t_positive, reduce='no', normalize=False) # For binary
+            y_unlabeled = self.loss_func(self.x_in, t_negative, reduce='no', normalize=False) # For binary
+        elif self.loss_func_name == "tanh_cross_entropy":
+            y_positive = self.loss_func(self.x_in, t_positive, reduce='no', normalize=False) # For binary
+            y_unlabeled = self.loss_func(self.x_in, t_negative, reduce='no', normalize=False) # For binary
         else:
             y_positive = self.loss_func(self.x_in)
             y_unlabeled = self.loss_func(-self.x_in)

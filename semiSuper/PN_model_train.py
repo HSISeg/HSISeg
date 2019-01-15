@@ -9,6 +9,7 @@ from chainer import computational_graph
 import chainer.links as L
 from chainer import Chain, cuda
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+from semiSuper.tanh_cross_entropy import tanh_cross_entropy
 
 class MultiLayerPerceptron(Chain):
     def __init__(self):
@@ -143,6 +144,21 @@ def shuffle_data(X_tr, Y_tr, X_te, Y_te):
     X_te, Y_te = X_te[perm], Y_te[perm]
     return (X_tr, Y_tr), (X_te, Y_te)
 
+class TanhClassifier(chainer.Chain):
+    def __init__(self, predictor):
+        super(TanhClassifier, self).__init__()
+        with self.init_scope():
+            self.predictor = predictor 
+
+    def __call__(self, x, t):
+        y = self.predictor(x)
+        # print(y.shape, "y_shape",t.shape,"t_shape")
+        # print(y,t)
+        self.loss = tanh_cross_entropy(y, t)
+        self.accuracy = F.binary_accuracy(y, t)
+        return self.loss
+
+
 class SigmoidClassifier(chainer.Chain):
     """Classifier is for calculating loss, from predictor's output.
     predictor is a model that predicts the probability of each label.
@@ -209,7 +225,7 @@ def run_classification():
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = SigmoidClassifier(model)
+    classifier_model = TanhClassifier(model)
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = 'result'
@@ -282,7 +298,7 @@ def train(X_tr, Y_tr, X_te, Y_te):
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = SigmoidClassifier(model)
+    classifier_model = TanhClassifier(model)
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out

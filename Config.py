@@ -9,7 +9,7 @@ opt = A("Indian_pines")
 # parser = argparse.ArgumentParser()
 # parser.add_argument('--data', type=str, default='Indian_pines')
 # opt = parser.parse_args()
-
+import numpy as np 
 data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat",
                                      "url2": "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat", "include_class_list" :[2, 3, 5, 6, 8, 10, 11, 12, 14]},
                      "Salinas": {"data_key": "salinas", "nbands": 8, "url1": "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat",
@@ -20,13 +20,13 @@ data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "
 #NNPU config
 batchsize = 100
 epoch = 100
-loss = 'sigmoid_cross_entropy'
+loss = 'tanh_cross_entropy'
 model = 'bass_net'
 gamma = 1.
 beta = 0.
 stepsize = 1e-3
 out = 'mldata/'
-output_layer_activation = 'sigmoid'
+output_layer_activation = 'tanh'
 # Zero-origin GPU ID (negative value indicates CPU)
 gpu = -1
 unlabeled_tag = 0
@@ -54,6 +54,8 @@ type_1_train_pos_labelled_percentage = 60
 
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
 type_1_train_pos_percentage = 10
+temperature_test_list = np.arange(-25,-4,14) 
+baseline_test_list =  np.arange(-25,-4,24)
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
 # type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
