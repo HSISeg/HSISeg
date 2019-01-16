@@ -9,7 +9,7 @@ from chainer import computational_graph
 import chainer.links as L
 from chainer import Chain, cuda
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
-from semiSuper.tanh_cross_entropy import TanhCrossEntropy
+from semiSuper.tanh_cross_entropy import tanh_cross_entropy
 
 class BassNet(Chain):
     def __init__(self, channels, n_classes = 1):
@@ -163,7 +163,7 @@ class TanhClassifier(chainer.Chain):
         y = self.predictor(x)
         # print(y.shape, "y_shape",t.shape,"t_shape")
         # print(y,t)
-        self.loss = TanhCrossEntropy(y, t)
+        self.loss = tanh_cross_entropy(y, t)
         self.accuracy = F.binary_accuracy(y, t)
         return self.loss
 
@@ -220,7 +220,7 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = TanhClassifier(model) 
+    classifier_model = SoftmaxClassifier(model) 
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out
@@ -259,7 +259,7 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
     train = (X_tr2, Y_tr2)
     N = len(train[1])
     model_2nd_stage = Configuration2(model)
-    classifier_model_2nd_stage = SigmoidClassifier(model_2nd_stage)
+    classifier_model_2nd_stage = TanhClassifier(model_2nd_stage)
     optimizer_2nd_stage = optimizers.Adam()
     optimizer_2nd_stage.setup(classifier_model_2nd_stage)
     # Learning loop

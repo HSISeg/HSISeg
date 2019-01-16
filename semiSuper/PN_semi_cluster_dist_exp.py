@@ -17,7 +17,7 @@ def run_PN_on_cluster_dist_sampling(clust_labelled_img, data_img, labelled_img):
             neg_class_list.remove(pos_class)
             if len(neg_class_list) > 0:
                 for ratio in Config.type_1_pos_neg_ratio_in_train:
-                    test_name = 'cluster_dist_cross_epoch_PN_refactored_new'
+                    test_name = 'cluster_dist_cross_epoch_PN_refactored'
                     for base in Config.temperature_test_list:
                         for temp in Config.temperature_test_list:
                             if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, base, temp):

@@ -25,35 +25,51 @@ def get_euclidean_dist(point1, point2):
     s = math.pow((point1[1] - point2[1]), 2) + math.pow((point1[0] - point2[0]), 2)
     return s ** 0.5
 
-def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width):
+def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width,  baseline, temp):
     all_pos_pixels = (np.concatenate((train_lp_pixels[0], cross_pos_pixels[0]), axis=0), np.concatenate((train_lp_pixels[1], cross_pos_pixels[1]), axis=0))
     dist = np.zeros((length, width), dtype=np.float32)
     for i in range(length):
         for j in range(width):
             dist[i][j] = min([get_euclidean_dist((i, j), (all_pos_pixels[0][l], all_pos_pixels[1][l])) for l in range(len(all_pos_pixels[0]))])
+    dist = 1 / (1 + np.exp((dist - baseline)/temp))
     return dist
 
-def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based):
+
+def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based, baseline, temp):
     if is_dist_based:
-        dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, gt_labelled_img.shape[0], gt_labelled_img.shape[1])
+        dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, gt_labelled_img.shape[0], gt_labelled_img.shape[1],  baseline, temp)
     else:
         dist = np.ones(clust_labelled_img.shape, dtype=np.float32)
-    clust_prob = get_prob_cluster(clust_labelled_img)
     clust_pos_prob = get_clust_given_pos_prob(clust_labelled_img, train_lp_pixels, cross_pos_pixels)
-    clust_sel_prob = clust_prob / clust_pos_prob
-    clust_sel_prob[np.isnan(clust_sel_prob)] = 0
-    # setting the infinite value pixels to max prob + 1
-    inf_pixels = clust_sel_prob == np.inf
-    clust_sel_prob[inf_pixels] = -1
-    max_prob = np.max(clust_sel_prob)
-    clust_sel_prob[inf_pixels] = max_prob + 1
+    clust_sel_prob = clust_pos_prob
     n_classes = np.max(clust_labelled_img) + 1
     final_prob = np.zeros(clust_labelled_img.shape, dtype=np.float32)
     for i in range(n_classes):
         class_pixels = clust_labelled_img == i
         final_prob[class_pixels] = dist[class_pixels] * clust_sel_prob[i]
-        # final_prob[class_pixels] += clust_sel_prob[i]
+    final_prob = 1 - final_prob
     return final_prob
+# def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based,  baseline, temp):
+#     if is_dist_based:
+#         dist = get_distance_from_positive(train_lp_pixels, cross_pos_pixels, gt_labelled_img.shape[0], gt_labelled_img.shape[1],  baseline, temp)
+#     else:
+#         dist = np.ones(clust_labelled_img.shape, dtype=np.float32)
+#     clust_prob = get_prob_cluster(clust_labelled_img)
+#     clust_pos_prob = get_clust_given_pos_prob(clust_labelled_img, train_lp_pixels, cross_pos_pixels)
+#     clust_sel_prob = clust_prob / clust_pos_prob
+#     clust_sel_prob[np.isnan(clust_sel_prob)] = 0
+#     # setting the infinite value pixels to max prob + 1
+#     inf_pixels = clust_sel_prob == np.inf
+#     clust_sel_prob[inf_pixels] = -1
+#     max_prob = np.max(clust_sel_prob)
+#     clust_sel_prob[inf_pixels] = max_prob + 1
+#     n_classes = np.max(clust_labelled_img) + 1
+#     final_prob = np.zeros(clust_labelled_img.shape, dtype=np.float32)
+#     for i in range(n_classes):
+#         class_pixels = clust_labelled_img == i
+#         final_prob[class_pixels] = dist[class_pixels] * clust_sel_prob[i]
+#         # final_prob[class_pixels] += clust_sel_prob[i]
+#     return final_prob
 
 def get_pos_pixels(pos_class_list, labelled_img, train_pos_percentage, cross_pos_percentage):
     pos_pixels = np.where(np.isin(labelled_img, pos_class_list) == True)
@@ -122,11 +138,11 @@ def shuffle_test_data(X, Y, test_pos_pixels, test_neg_pixels):
     X, Y = X[perm], Y[perm]
     return X, Y, shuffled_test_pixels
 
-def get_PU_data(pos_class_list, neg_class_list, data_img, gt_labelled_img, clust_labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross, is_dist_based):
+def get_PU_data(pos_class_list, neg_class_list, data_img, gt_labelled_img, clust_labelled_img, train_pos_percentage, pos_neg_ratio_in_train, cross_pos_percentage, pos_neg_ratio_in_cross, is_dist_based, baseline, temp):
     pos_class_list = list(set(pos_class_list))
     train_lp_pixels, cross_pos_pixels = get_pos_pixels(pos_class_list, gt_labelled_img, train_pos_percentage,
                                                        cross_pos_percentage)
-    final_weight = get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based)
+    final_weight = get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based,  baseline, temp)
     exclude_pixels = get_exclude_pixels(pos_class_list, neg_class_list, gt_labelled_img)
     train_unlabelled_indx, cross_unlabelled_indx = get_unlabelled_pixels(exclude_pixels, final_weight, train_lp_pixels,
                                                                          cross_pos_pixels, gt_labelled_img, pos_class_list)

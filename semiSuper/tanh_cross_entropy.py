@@ -22,11 +22,11 @@ class TanhCrossEntropy(function_node.FunctionNode):
         self.count = None
 
     def check_type_forward(self, in_types):
-        type_check.expect(in_types.size() == 2)
-
+        # type_check._argname(in_types, ('x', 't'))
         x_type, t_type = in_types
+
         type_check.expect(
-            x_type.dtype == numpy.float32,
+            x_type.dtype.kind == 'f',
             t_type.dtype.kind == 'i',
             x_type.shape == t_type.shape
         )

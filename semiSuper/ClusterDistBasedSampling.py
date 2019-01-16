@@ -32,7 +32,7 @@ def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width,
     for i in range(length):
         for j in range(width):
             dist[i][j] = min([get_euclidean_dist((i, j), (all_pos_pixels[0][l], all_pos_pixels[1][l])) for l in range(len(all_pos_pixels[0]))])
-    dist = 1 / (1 + np.exp(dist))
+    dist = 1 / (1 + np.exp((dist - baseline)/temp))
     return dist
 
 def get_point_wise_prob(gt_labelled_img, clust_labelled_img, train_lp_pixels, cross_pos_pixels, is_dist_based, baseline, temp):

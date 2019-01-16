@@ -54,8 +54,8 @@ type_1_train_pos_labelled_percentage = 60
 
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
 type_1_train_pos_percentage = 10
-temperature_test_list = np.arange(-25,-4,14) 
-baseline_test_list =  np.arange(-25,-4,24)
+temperature_test_list = np.arange(14,50) 
+baseline_test_list =  np.arange(20,50) 
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
 # type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
