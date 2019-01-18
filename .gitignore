@@ -13,5 +13,3 @@ mldata/log
 *.db
 .idea/
 *.jpeg
-result/log
-result/1/*
