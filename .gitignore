@@ -13,3 +13,4 @@ mldata/log
 *.db
 .idea/
 *.jpeg
+result/*
