@@ -209,80 +209,83 @@ def load_saved_data():
     Y_tr = np.reshape(Y_tr, (Y_tr.shape[0] * Y_tr.shape[1]))
     return (X_tr, Y_tr), (X_te, Y_te)
 
-def run_classification():
-    (X_tr, Y_tr), (X_te, Y_te) = load_saved_data()
-    (X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
+# def run_classification():
+#     (X_tr, Y_tr), (X_te, Y_te) = load_saved_data()
+#     (X_tr, Y_tr), (X_te, Y_te) = shuffle_data(X_tr, Y_tr, X_te, Y_te)
 
-    channels = X_tr.shape[1]
-    model = BassNet(channels)
-    # model = MultiLayerPerceptron()
+#     channels = X_tr.shape[1]
+#     model = BassNet(channels)
+#     # model = MultiLayerPerceptron()
 
-    train = (X_tr, Y_tr)
-    test = (X_te, Y_te)
+#     train = (X_tr, Y_tr)
+#     test = (X_te, Y_te)
 
-    batchsize = Config.batchsize
-    n_epoch = Config.epoch
+#     batchsize = Config.batchsize
+#     n_epoch = Config.epoch
 
-    N = len(train[1])  # training data size
-    N_test = len(test[1])
-    classifier_model = TanhClassifier(model)
-    optimizer = optimizers.Adam()
-    optimizer.setup(classifier_model)
-    out = 'result'
-    # Learning loop
-    for epoch in six.moves.range(1, n_epoch + 1):
-        print('epoch', epoch)
+#     N = len(train[1])  # training data size
+#     N_test = len(test[1])
+#     if Config.loss == "tanh_cross_entropy":
+#         classifier_model = TanhClassifier(model)
+#     else:
+#         classifier_model = SigmoidClassifier(model)
+#     optimizer = optimizers.Adam()
+#     optimizer.setup(classifier_model)
+#     out = 'result'
+#     # Learning loop
+#     for epoch in six.moves.range(1, n_epoch + 1):
+#         print('epoch', epoch)
 
-        # training
-        perm = np.random.permutation(N)
-        sum_accuracy = 0
-        sum_loss = 0
-        start = time.time()
-        for i in six.moves.range(0, N, batchsize):
-            x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]],dtype=np.float32))
-            t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]],dtype=np.int32))
-            # Pass the loss function (Classifier defines it) and its arguments
-            optimizer.update(classifier_model, x, t)
+#         # training
+#         perm = np.random.permutation(N)
+#         sum_accuracy = 0
+#         sum_loss = 0
+#         start = time.time()
+#         for i in six.moves.range(0, N, batchsize):
+#             x = chainer.Variable(np.asarray(train[0][perm[i:i + batchsize]],dtype=np.float32))
+#             t = chainer.Variable(np.asarray(train[1][perm[i:i + batchsize]],dtype=np.int32))
+#             # Pass the loss function (Classifier defines it) and its arguments
+#             optimizer.update(classifier_model, x, t)
 
-            if epoch == 1 and i == 0:
-                with open('{}/graph.dot'.format(out), 'w') as o:
-                    g = computational_graph.build_computational_graph(
-                        (classifier_model.loss,))
-                    o.write(g.dump())
-                print('graph generated')
+#             if epoch == 1 and i == 0:
+#                 with open('{}/graph.dot'.format(out), 'w') as o:
+#                     g = computational_graph.build_computational_graph(
+#                         (classifier_model.loss,))
+#                     o.write(g.dump())
+#                 print('graph generated')
 
-            sum_loss += float(classifier_model.loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-        end = time.time()
-        elapsed_time = end - start
-        throughput = N / elapsed_time
-        print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
-            sum_loss / N, sum_accuracy / N, throughput))
+#             sum_loss += float(classifier_model.loss.data) * len(t.data)
+#             sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+#         end = time.time()
+#         elapsed_time = end - start
+#         throughput = N / elapsed_time
+#         print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
+#             sum_loss / N, sum_accuracy / N, throughput))
 
-        # evaluation
-        sum_accuracy = 0
-        sum_loss = 0
-        for i in six.moves.range(0, N_test, batchsize):
-            index = np.asarray(list(range(i, i + batchsize)))
-            x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
-            t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
-            with chainer.no_backprop_mode():
-                # When back propagation is not necessary,
-                # we can omit constructing graph path for better performance.
-                # `no_backprop_mode()` is introduced from chainer v2,
-                # while `volatile` flag was used in chainer v1.
-                loss = classifier_model(x, t)
-            sum_loss += float(loss.data) * len(t.data)
-            sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+#         # evaluation
+#         sum_accuracy = 0
+#         sum_loss = 0
+#         for i in six.moves.range(0, N_test, batchsize):
+#             index = np.asarray(list(range(i, i + batchsize)))
+#             x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
+#             t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
+#             with chainer.no_backprop_mode():
+#                 # When back propagation is not necessary,
+#                 # we can omit constructing graph path for better performance.
+#                 # `no_backprop_mode()` is introduced from chainer v2,
+#                 # while `volatile` flag was used in chainer v1.
+#                 loss = classifier_model(x, t)
+#             sum_loss += float(loss.data) * len(t.data)
+#             sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
 
-        print('test  mean loss={}, accuracy={}'.format(
-            sum_loss / N_test, sum_accuracy / N_test))
+#         print('test  mean loss={}, accuracy={}'.format(
+#             sum_loss / N_test, sum_accuracy / N_test))
 
-    precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
-    # print("accuracy", accuracy)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
-    # test data size
-    return precision, recall, (tn, fp, fn, tp)
+#     precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
+#     # print("accuracy", accuracy)
+#     # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
+#     # test data size
+#     return precision, recall, (tn, fp, fn, tp)
 
 
 def train(X_tr, Y_tr, X_te, Y_te):
@@ -298,7 +301,10 @@ def train(X_tr, Y_tr, X_te, Y_te):
 
     N = len(train[1])  # training data size
     N_test = len(test[1])
-    classifier_model = TanhClassifier(model)
+    if Config.loss == "tanh_cross_entropy":
+        classifier_model = TanhClassifier(model)
+    else:
+        classifier_model = SigmoidClassifier(model)
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out
@@ -332,33 +338,9 @@ def train(X_tr, Y_tr, X_te, Y_te):
         throughput = N / elapsed_time
         print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
             sum_loss / N, sum_accuracy / N, throughput))
-
-        # evaluation
-        # sum_accuracy = 0
-        # sum_loss = 0
-        # for i in six.moves.range(0, N_test, batchsize):
-        #     index = np.asarray(list(range(i, i + batchsize)))
-        #     x = chainer.Variable(np.asarray(test[0][i:i + batchsize], dtype=np.float32))
-        #     t = chainer.Variable(np.asarray(test[1][i:i + batchsize], dtype=np.int32))
-        #     with chainer.no_backprop_mode():
-        #         # When back propagation is not necessary,
-        #         # we can omit constructing graph path for better performance.
-        #         # `no_backprop_mode()` is introduced from chainer v2,
-        #         # while `volatile` flag was used in chainer v1.
-        #         loss = classifier_model(x, t)
-        #     sum_loss += float(loss.data) * len(t.data)
-        #     sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
-        #
-        # print('test  mean loss={}, accuracy={}'.format(
-        #     sum_loss / N_test, sum_accuracy / N_test))
         predicted_output  = utils.get_output_by_activation(model, X_te)
         precision, recall, _ = utils.get_model_stats(predicted_output, Y_te)
         print('test precision={}, recall={}'. format(precision, recall))
-
-    # precision, recall, (tn, fp, fn, tp) = get_accuracy(model, X_te, Y_te)
-    # print("accuracy", accuracy)
-    # print("precision", precision, "recall", recall, "tn", tn, "fp", fp, "fn", fn, "tp", tp)
-    # test data size
     return model
 
 # run_classification()

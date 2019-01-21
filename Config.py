@@ -20,13 +20,13 @@ data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "
 #NNPU config
 batchsize = 100
 epoch = 100
-loss = 'tanh_cross_entropy'
+loss = 'sigmoid_cross_entropy'
 model = 'bass_net'
 gamma = 1.
 beta = 0.
 stepsize = 1e-3
 out = 'mldata/'
-output_layer_activation = 'tanh'
+output_layer_activation = 'sigmoid'
 # Zero-origin GPU ID (negative value indicates CPU)
 gpu = -1
 unlabeled_tag = 0
@@ -55,15 +55,17 @@ type_1_train_pos_labelled_percentage = 60
 # percentage of pixels from total pixels of positive class that will be included in training, type_1_train_pos_labelled_percentage% of positive pixels will be labelled
 type_1_train_pos_percentage = 10
 temperature_test_list = np.arange(14,50) 
+# temperature_test_list = [20]
+# baseline_test_list = [30]
 baseline_test_list =  np.arange(20,50) 
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 type_1_train_neg_percentage = 30 # not required
 # type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
 type_1_pos_neg_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
-type_1_pos_neg_ratio_in_train = [0.33]
+# type_1_pos_neg_ratio_in_train = [0.33]
 # type_1_pos_neg_ratio_in_train = [1]
 type_1_cross_pos_percentage = 7
-type_1_pos_neg_ratio_in_cross = 1
+# type_1_pos_neg_ratio_in_cross = 1
 experiment_number = 20
 """ 
 boolean value to indicate the way of selection for negative unlabelled training data,
@@ -93,4 +95,5 @@ patch_window_end_percent = 25
 # class label included in this test, negative class  = list(set(include_class_list) - set(positive_class))
 # Note: Class labels should be present in groundtooth image
 # include_class_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-type_2_include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
+# type_2_include_class_list = [2, 3, 5, 6, 8, 10, 11, 12, 14]
+

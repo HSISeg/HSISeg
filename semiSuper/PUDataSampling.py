@@ -32,6 +32,7 @@ def get_distance_from_positive(train_lp_pixels, cross_pos_pixels, length, width,
         for j in range(width):
             dist[i][j] = min([get_euclidean_dist((i, j), (all_pos_pixels[0][l], all_pos_pixels[1][l])) for l in range(len(all_pos_pixels[0]))])
     dist = 1 / (1 + np.exp((dist - baseline)/temp))
+    # dist = 1 / (1 + np.exp(dist))
     return dist
 
 

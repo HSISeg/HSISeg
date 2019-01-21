@@ -259,7 +259,11 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
     train = (X_tr2, Y_tr2)
     N = len(train[1])
     model_2nd_stage = Configuration2(model)
-    classifier_model_2nd_stage = TanhClassifier(model_2nd_stage)
+    if Config.loss == "tanh_cross_entropy":
+        classifier_model_2nd_stage = TanhClassifier(model_2nd_stage)
+    else:
+        classifier_model_2nd_stage = SigmoidClassifier(model_2nd_stage)
+    
     optimizer_2nd_stage = optimizers.Adam()
     optimizer_2nd_stage.setup(classifier_model_2nd_stage)
     # Learning loop
