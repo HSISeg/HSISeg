@@ -13,3 +13,9 @@ run the experiment with
 1) python3 run_exp.py --data Indian_pines
 2) python3 run_exp.py --data Salinas
 3) python3 run_exp.py --data PaviaU
+4) python3 run_PN_multi_exp.py --data Indian_pines
+5) python3 run_PN_multi_exp.py --data Salinas
+6) python3 run_PN_multi_exp.py --data PaviaU
+7) python3 run_PN_exp.py --data Indian_pines
+8) python3 run_PN_exp.py --data Salinas
+9) python3 run_PN_exp.py --data PaviaU

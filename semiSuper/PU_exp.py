@@ -66,7 +66,7 @@ def run(clust_labelled_img, data_img, labelled_img):
                                                      no_train_neg_unlabelled=int(len(train_un_pixels[0])),
                                                      train_pos_neg_ratio=ratio, threshold=model.threshold, auc=model.auc,
                                                      data_name=Config.data,visual_result_filename=visual_result_filename,
-                                                     temperature = temp, baseline= base)
+                                                     temperature = temp, baseline= base, experiment_number=k)
 
 
 if __name__ == '__main__':
