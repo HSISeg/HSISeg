@@ -1,14 +1,14 @@
-class A:
-	data = None
-	def __init__(self, data):
-		self.data = data
+# class A:
+# 	data = None
+# 	def __init__(self, data):
+# 		self.data = data
 
-opt = A("Indian_pines")
-# import argparse
+# opt = A("Indian_pines")
+import argparse
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--data', type=str, default='Indian_pines')
-# opt = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument('--data', type=str, default='Indian_pines')
+opt = parser.parse_args()
 
 fuzzy_c_means_beta_algo = {'beta_spectral_spatial':{
 												'algo_params':{'max_points':10,'half_search_window':10,'half_patch_size':1, 'gaussian_sigma':3,'euclidean_distance_weight': 0 ,'theta':0.7}},

@@ -21,7 +21,9 @@ def download_and_save_data():
         target_mat = io.loadmat(Config.out + data + '_gt.mat')[data_key + '_gt']
     target_mat = np.asarray(target_mat, dtype=np.int32)
     input_mat = np.asarray(input_mat, dtype=np.float32)
-    # if data == "PaviaU":
+    if data == "PaviaU":
+        zeros = np.zeros((input_mat.shape[0], input_mat.shape[1], 1))
+        input_mat = np.concatenate((input_mat, zeros), axis=2)
     return input_mat, target_mat
 
 

@@ -1,20 +1,20 @@
-class A:
-	data = None
-	def __init__(self, data):
-		self.data = data
+# class A:
+# 	data = None
+# 	def __init__(self, data):
+# 		self.data = data
 
-opt = A("Indian_pines")
-# import argparse
+# opt = A("Indian_pines")
+import argparse
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--data', type=str, default='Indian_pines')
-# opt = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument('--data', type=str, default='Indian_pines')
+opt = parser.parse_args()
 import numpy as np 
 data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/2/22/Indian_pines.mat",
                                      "url2": "http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat", "include_class_list" :[2, 3, 5, 6, 8, 10, 11, 12, 14]},
                      "Salinas": {"data_key": "salinas", "nbands": 8, "url1": "http://www.ehu.eus/ccwintco/uploads/f/f1/Salinas.mat",
                                      "url2": "http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat", "include_class_list" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]},
-                    "PaviaU": {"data_key": "paviaU", "nbands": 10, "url1": "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat",
+                    "PaviaU": {"data_key": "paviaU", "nbands": 8, "url1": "http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat",
                                      "url2": "http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat", "include_class_list" : [1, 2, 3, 4, 5, 6, 7, 8, 9]},
                     }
 #NNPU config
