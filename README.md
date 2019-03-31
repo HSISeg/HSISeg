@@ -5,8 +5,7 @@ Run the following commands
 
 
 Now open the following files
-1) algo/algo_default_params.py comment line 1-6 and uncomment line 7-11
-2) Config.py comment line 1-6 and uncomment line 7-11
+1) Config.py comment line 1-6 and uncomment line 7-11
 
 run the experiment with 
 

@@ -57,7 +57,7 @@ def get_point_wise_prob(clust_labelled_img, train_lp_pixels, cross_pos_pixels, i
             class_pixels = clust_labelled_img == i
             # bayes rule
             final_prob[class_pixels] = (dist[class_pixels] * clust_pos_prob[i])/ clust_sel_prob[i]
-    # final_prob = final_prob / np.sum(final_prob)
+    final_prob = final_prob / np.sum(final_prob)
     final_prob = 1 - final_prob
     return final_prob
 
