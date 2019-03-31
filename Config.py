@@ -22,7 +22,7 @@ data_based_config = {"Indian_pines":{"data_key": "indian_pines", "nbands": 10, "
                     }
 #NNPU config
 batchsize = 100
-epoch = 2
+epoch = 100
 loss = 'sigmoid_cross_entropy'
 model = 'bass_net'
 gamma = 1.
