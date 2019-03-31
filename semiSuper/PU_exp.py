@@ -25,7 +25,7 @@ def run_human_guess(clust_labelled_img, data_img, labelled_img):
                     test_name = Config.data + '_cluster_dist_PU_'+str(ratio)
                     for base in Config.baseline_test_list:
                         for temp in Config.temperature_test_list:
-                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, True, k, base, temp):
+                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, True, k, base, temp, Config.spatial_spectral_single_term):
                                 if clust_labelled_img is None or data_img is None or labelled_img is None:
                                     data_img, labelled_img = utils.load_preprocessed_data()
                                     clust_labelled_img = utils.load_clustered_img()
@@ -78,7 +78,7 @@ def run_human_guess(clust_labelled_img, data_img, labelled_img):
                                                      data_name=Config.data,visual_result_filename=visual_result_filename,
                                                      temperature = temp, baseline= base, experiment_number=k,
                                                      experiment_time=end_time - start_time, convergence_plot_path="result/" + train_loss_output_path,
-                                                     unlabelled_prior = prior)
+                                                     unlabelled_prior = prior, sampling_model='spectral_spatial_single' if Config.spatial_spectral_single_term else 'spectral_spatial_divided')
 
 
 def run_prior_calculate(clust_labelled_img, data_img, labelled_img):
@@ -93,7 +93,7 @@ def run_prior_calculate(clust_labelled_img, data_img, labelled_img):
                 test_name = Config.data + '_cal_prior_cluster_dist_PU'
                 for base in Config.baseline_test_list:
                     for temp in Config.temperature_test_list:
-                        if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, None, True, k, base, temp):
+                        if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, None, True, k, base, temp, Config.spatial_spectral_single_term):
                             if clust_labelled_img is None or data_img is None or labelled_img is None:
                                 data_img, labelled_img = utils.load_preprocessed_data()
                                 clust_labelled_img = utils.load_clustered_img()
@@ -146,7 +146,7 @@ def run_prior_calculate(clust_labelled_img, data_img, labelled_img):
                                                  data_name=Config.data,visual_result_filename=visual_result_filename,
                                                  temperature = temp, baseline= base, experiment_number=k,
                                                  experiment_time=end_time - start_time, convergence_plot_path="result/" + train_loss_output_path,
-                                                 unlabelled_prior = prior)
+                                                 unlabelled_prior = prior, sampling_model='spectral_spatial_single' if Config.spatial_spectral_single_term else 'spectral_spatial_divided')
 
 
 if __name__ == '__main__':

@@ -42,6 +42,7 @@ class PUstats(models.Model):
 	preprocessing_time = models.FloatField(blank=True, null=True)
 	experiment_time = models.FloatField(blank=True, null=True)
 	convergence_plot_path = models.CharField(max_length=200, blank=True, null=True)
+	sampling_model = models.CharField(max_length=100, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PUstats'
@@ -73,6 +74,7 @@ class PNstats(models.Model):
 	preprocessing_time = models.FloatField(blank=True, null=True)
 	experiment_time = models.FloatField(blank=True, null=True)
 	convergence_plot_path = models.CharField(max_length=200, blank=True, null=True)
+	sampling_model = models.CharField(max_length=100, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PNstats'

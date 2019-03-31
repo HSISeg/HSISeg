@@ -21,7 +21,7 @@ def run_PN_on_cluster_dist_sampling(clust_labelled_img, data_img, labelled_img):
                     test_name = 'cluster_distance_based_sampling_PN_exp'
                     for base in Config.baseline_test_list:
                         for temp in Config.temperature_test_list:
-                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, base, temp):
+                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, base, temp, Config.spatial_spectral_single_term):
                                 if clust_labelled_img is None or data_img is None or labelled_img is None:
                                     data_img, labelled_img = utils.load_preprocessed_data()
                                     clust_labelled_img = utils.load_clustered_img()
@@ -64,7 +64,7 @@ def run_PN_on_cluster_dist_sampling(clust_labelled_img, data_img, labelled_img):
                                         no_train_pos_unlabelled = int(len(train_up_pixels[0])), no_train_neg_unlabelled = int(len(train_un_pixels[0])),
                                         train_pos_neg_ratio = ratio, threshold = model.threshold, auc = model.auc, data_name = Config.data, 
                                         visual_result_filename=visual_result_filename,  temperature = temp, baseline= base,experiment_number=k,
-                                        experiment_time=end_time - start_time, convergence_plot_path=output_path)
+                                        experiment_time=end_time - start_time, convergence_plot_path=output_path, sampling_model='spectral_spatial_single' if Config.spatial_spectral_single_term else 'spectral_spatial_divided')
 
 
 def run_PN_on_cluster_sampling(clust_labelled_img, data_img, labelled_img):
@@ -79,7 +79,7 @@ def run_PN_on_cluster_sampling(clust_labelled_img, data_img, labelled_img):
                 for ratio in Config.type_1_neg_pos_ratio_in_train:
                     test_name = 'cluster_based_sampling_PN_exp'
                     
-                    if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, None, None):
+                    if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, None, None, Config.spatial_spectral_single_term):
                         if clust_labelled_img is None or data_img is None or labelled_img is None:
                             data_img, labelled_img = utils.load_preprocessed_data()
                             clust_labelled_img = utils.load_clustered_img()
@@ -124,7 +124,8 @@ def run_PN_on_cluster_sampling(clust_labelled_img, data_img, labelled_img):
                                 no_train_pos_unlabelled = int(len(train_up_pixels[0])), no_train_neg_unlabelled = int(len(train_un_pixels[0])),
                                 train_pos_neg_ratio = ratio, threshold = model.threshold, auc = model.auc, data_name = Config.data, 
                                 visual_result_filename=visual_result_filename, temperature = None, baseline= None,experiment_number=k,
-                                experiment_time=end_time - start_time, convergence_plot_path=output_path)
+                                experiment_time=end_time - start_time, convergence_plot_path=output_path,
+                                sampling_model='spectral_spatial_single' if Config.spatial_spectral_single_term else 'spectral_spatial_divided')
 
 
 
@@ -141,7 +142,7 @@ def run_PN_on_dist_sampling(clust_labelled_img, data_img, labelled_img):
                     test_name = 'distance_based_sampling_PN_exp'
                     for base in Config.baseline_test_list:
                         for temp in Config.temperature_test_list:
-                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, base, temp):
+                            if not utils.check_if_test_done_models(str(pos_class), test_name, ",".join([str(i) for i in neg_class_list]), Config.data, ratio, False, k, base, temp, Config.spatial_spectral_single_term):
                                 if data_img is None or labelled_img is None:
                                     data_img, labelled_img = utils.load_preprocessed_data()
                                 start_time = time.time()
@@ -174,7 +175,8 @@ def run_PN_on_dist_sampling(clust_labelled_img, data_img, labelled_img):
                                         no_train_pos_unlabelled = int(len(train_up_pixels[0])), no_train_neg_unlabelled = int(len(train_un_pixels[0])),
                                         train_pos_neg_ratio = ratio, threshold = model.threshold, auc = model.auc, data_name = Config.data, 
                                         visual_result_filename=visual_result_filename, temperature = temp, baseline= base,experiment_number=k,
-                                        experiment_time=end_time - start_time, convergence_plot_path=output_path)
+                                        experiment_time=end_time - start_time, convergence_plot_path=output_path,
+                                        sampling_model='spectral_spatial_single' if Config.spatial_spectral_single_term else 'spectral_spatial_divided')
 
 if __name__ == '__main__':
     run_cluster_dist(None, None, None)

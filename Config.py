@@ -64,6 +64,7 @@ type_1_cross_pos_percentage = 7
 # type_1_pos_neg_ratio_in_cross = 1
 experiment_number = 2
 is_random_positive_sampling = False
+spatial_spectral_single_term = True
 
 
 type_1_include_class_list = data_based_config[opt.data]["include_class_list"]
