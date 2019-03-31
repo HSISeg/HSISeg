@@ -162,11 +162,12 @@ def check_if_test_done(pos_class, test_type, neg_class):
     conn.close()
     return False
 
-def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_pos_neg_ratio, isPU, index, base, temp):
+def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_neg_pos_ratio, isPU, index, base, temp):
+    print(pos_class, test_type, neg_class, data_name, train_neg_pos_ratio, isPU, index, base, temp)
     if isPU:
-        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
+        rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_neg_pos_ratio = train_neg_pos_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
     else:
-        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_pos_neg_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
+        rows = PNstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_pos_neg_ratio = train_neg_pos_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp)
     if rows:
         return True
     return False

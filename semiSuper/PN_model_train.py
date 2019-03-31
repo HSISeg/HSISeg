@@ -308,6 +308,8 @@ def train(X_tr, Y_tr, X_te, Y_te):
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out
+    test_loss = []
+    train_loss = []
     # Learning loop
     for epoch in six.moves.range(1, n_epoch + 1):
         print('epoch', epoch)
@@ -332,6 +334,24 @@ def train(X_tr, Y_tr, X_te, Y_te):
 
             sum_loss += float(classifier_model.loss.data) * len(t.data)
             sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+
+        train_loss.append(sum_loss/N)
+                # evaluation
+        sum_test_accuracy = 0
+        sum_test_loss = 0
+        for i in six.moves.range(0, N_test, batchsize):
+            x = chainer.Variable(np.asarray(test[0][i:i + batchsize],dtype=np.float32))
+            t = chainer.Variable(np.asarray(test[1][i:i + batchsize],dtype=np.int32))
+            with chainer.no_backprop_mode():
+                # When back propagation is not necessary,
+                # we can omit constructing graph path for better performance.
+                # `no_backprop_mode()` is introduced from chainer v2,
+                # while `volatile` flag was used in chainer v1.
+                loss = classifier_model(x, t)
+            sum_test_loss += float(loss.data) * len(t.data)
+            sum_test_accuracy += float(classifier_model.accuracy.data) * len(t.data)
+
+        test_loss.append(sum_test_loss/N)
         # do cross validation and thresholding here
         end = time.time()
         elapsed_time = end - start
@@ -341,6 +361,6 @@ def train(X_tr, Y_tr, X_te, Y_te):
         predicted_output  = utils.get_output_by_activation(model, X_te)
         precision, recall, _ = utils.get_model_stats(predicted_output, Y_te)
         print('test precision={}, recall={}'. format(precision, recall))
-    return model
+    return model, train_loss, test_loss
 
 # run_classification()

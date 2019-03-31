@@ -224,6 +224,8 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
     optimizer = optimizers.Adam()
     optimizer.setup(classifier_model)
     out = Config.out
+    train_loss = []
+    test_loss = []
     # Learning loop
     for epoch in six.moves.range(1, n_epoch + 1):
         print('epoch', epoch)
@@ -249,6 +251,7 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
             sum_loss += float(classifier_model.loss.data) * len(t.data)
             sum_accuracy += float(classifier_model.accuracy.data) * len(t.data)
         # do cross validation and thresholding here
+
         end = time.time()
         elapsed_time = end - start
         throughput = N / elapsed_time
@@ -296,7 +299,7 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
         throughput = N / elapsed_time
         print('train mean loss={}, accuracy={}, throughput={} images/sec'.format(
             sum_loss / N, sum_accuracy / N, throughput))
-
+        train_loss.append(sum_loss/N)
         # evaluation
         sum_accuracy = 0
         sum_loss = 0
@@ -315,10 +318,11 @@ def train(X_tr2, Y_tr2, X_te, Y_te, X_cluster, Y_cluster ):
 
         print('test  mean loss={}, accuracy={}'.format(
             sum_loss / N_test, sum_accuracy / N_test))
+        test_loss.append(sum_loss/N)
         predicted_output  = utils.get_output_by_activation(model_2nd_stage, X_te)
         precision, recall, _ = utils.get_model_stats(predicted_output, Y_te)
         print('test precision={}, recall={}'. format(precision, recall))
 
-    return model_2nd_stage
+    return model_2nd_stage, train_loss, test_loss
 
 # run_classification()

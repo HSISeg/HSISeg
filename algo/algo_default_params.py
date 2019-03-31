@@ -1,14 +1,4 @@
-# class A:
-# 	data = None
-# 	def __init__(self, data):
-# 		self.data = data
-
-# opt = A("Indian_pines")
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--data', type=str, default='Indian_pines')
-opt = parser.parse_args()
+import Config
 
 fuzzy_c_means_beta_algo = {'beta_spectral_spatial':{
 												'algo_params':{'max_points':10,'half_search_window':10,'half_patch_size':1, 'gaussian_sigma':3,'euclidean_distance_weight': 0 ,'theta':0.7}},
@@ -16,7 +6,7 @@ fuzzy_c_means_beta_algo = {'beta_spectral_spatial':{
 									'algo_params':{'theta':0.7,'max_points':500}}}
 default_beta_algo = 'beta_spatial'
 data_wise_cluster_number = {"Indian_pines" : 17, "Salinas": 17, "PaviaU": 10}
-cluster_number = data_wise_cluster_number[opt.data]
+cluster_number = data_wise_cluster_number[Config.data]
 
 default_weight_algo = 'pdhg_sparse_weight'
 

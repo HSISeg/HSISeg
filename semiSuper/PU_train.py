@@ -96,7 +96,7 @@ class MultiEvaluator(chainer.training.extensions.Evaluator):
             summary.add(observation)
         return summary.compute_mean()
 
-def train(XYtrain, XYtest, prior):
+def train(XYtrain, XYtest, prior, test_output_path, train_output_path, out):
     unlabeled_tag = Config.unlabeled_tag
     gpu = Config.gpu
     batchsize = Config.batchsize
@@ -106,7 +106,6 @@ def train(XYtrain, XYtest, prior):
     gamma = Config.gamma
     beta = Config.beta
     stepsize = Config.stepsize
-    out = Config.out
     dim = XYtrain[0][0].size // len(XYtrain[0][0])
     channel = XYtrain[0][0].shape[0]
     train_iter = chainer.iterators.SerialIterator(XYtrain, batchsize)
@@ -134,9 +133,9 @@ def train(XYtrain, XYtest, prior):
         ['epoch', 'nnPU/loss', 'test/nnPU/error','test/nnPU/precision', 'test/nnPU/recall', 'elapsed_time']))
     if extensions.PlotReport.available():
         trainer.extend(
-            extensions.PlotReport(['nnPU/loss'], 'epoch', file_name='training_error.png'))
+            extensions.PlotReport(['nnPU/loss'], 'epoch', file_name=train_output_path))
         trainer.extend(
-            extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name='test_error.png'))
+            extensions.PlotReport(['test/nnPU/error'], 'epoch', file_name=test_output_path))
     print("prior: {}".format(prior))
     print("stepsize: {}".format(stepsize))
     print("loss: {}".format(loss))

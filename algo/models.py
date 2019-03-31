@@ -20,8 +20,8 @@ class PUstats(models.Model):
 	neg_class = models.CharField(max_length=70, blank=True, null=True)
 	precision = models.FloatField(default=0)
 	recall = models.FloatField(default=0)
-	temperature = models.FloatField(default=0)
-	baseline = models.FloatField(default=0)
+	temperature = models.FloatField(blank=True, null=True)
+	baseline = models.FloatField(blank=True, null=True)
 	true_pos = models.IntegerField(blank=True, null=True)
 	true_neg = models.IntegerField(blank=True, null=True)
 	false_pos = models.IntegerField(blank=True, null=True)
@@ -33,11 +33,15 @@ class PUstats(models.Model):
 	no_train_neg_unlabelled = models.IntegerField(blank=True, null=True)
 	visual_result_filename = models.CharField(max_length=100, blank=True, null=True)
 	creation_time = models.DateTimeField(default=datetime.datetime.now, blank=True)
-	train_pos_neg_ratio = models.FloatField(blank=True, null=True)
+	train_neg_pos_ratio = models.FloatField(blank=True, null=True)
+	unlabelled_prior = models.FloatField(blank=True, null=True)
 	threshold = models.FloatField(blank=True, null=True)
 	auc = models.FloatField(blank=True, null=True)
 	data_name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
 	experiment_number = models.CharField(max_length=10, blank=True, null=True)
+	preprocessing_time = models.FloatField(blank=True, null=True)
+	experiment_time = models.FloatField(blank=True, null=True)
+	convergence_plot_path = models.CharField(max_length=200, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PUstats'
@@ -48,8 +52,8 @@ class PNstats(models.Model):
 	neg_class = models.CharField(max_length=70, blank=True, null=True)
 	precision = models.FloatField(default=0)
 	recall = models.FloatField(default=0)
-	temperature = models.FloatField(default=0)
-	baseline = models.FloatField(default=0)
+	temperature = models.FloatField(blank=True, null=True)
+	baseline = models.FloatField(blank=True, null=True)
 	true_pos = models.IntegerField(blank=True, null=True)
 	true_neg = models.IntegerField(blank=True, null=True)
 	false_pos = models.IntegerField(blank=True, null=True)
@@ -66,6 +70,9 @@ class PNstats(models.Model):
 	auc = models.FloatField(blank=True, null=True)
 	data_name = models.CharField(max_length=70, blank=True, null=True, db_index=True)
 	experiment_number = models.CharField(max_length=10, blank=True, null=True)
+	preprocessing_time = models.FloatField(blank=True, null=True)
+	experiment_time = models.FloatField(blank=True, null=True)
+	convergence_plot_path = models.CharField(max_length=200, blank=True, null=True)
 
 	class Meta:
 		db_table = 'PNstats'

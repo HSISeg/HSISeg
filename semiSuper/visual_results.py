@@ -243,4 +243,15 @@ def test_from_pickle():
 
 	return
 
+
+def plot_convergence(train_loss, test_loss, output_path):
+    x = np.arange(len(train_loss))
+    plt.plot(x, train_loss)
+    plt.xlabel('Iteration Number')
+    plt.plot(x, test_loss)
+    plt.legend(['Train loss','Test loss'])
+    plt.ylabel('Loss values')
+    plt.show()
+    plt.savefig(output_path, bbox_inches='tight', dpi=1200)
+
 # test_from_pickle()
