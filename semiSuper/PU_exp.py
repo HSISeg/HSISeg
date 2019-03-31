@@ -16,7 +16,6 @@ def run_human_guess(clust_labelled_img, data_img, labelled_img):
     # cross validation ratio change
     include_class_list = Config.type_1_include_class_list
     pos_class_list = Config.pos_class_list
-    print("precision")
     for k in range(0, Config.experiment_number):
         for pos_class in pos_class_list:
             neg_class_list = copy.copy(list(set(include_class_list)))

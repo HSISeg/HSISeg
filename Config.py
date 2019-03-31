@@ -62,7 +62,7 @@ type_1_neg_pos_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
 # type_1_pos_neg_ratio_in_train = [1]
 type_1_cross_pos_percentage = 7
 # type_1_pos_neg_ratio_in_cross = 1
-experiment_number = 1
+experiment_number = 20
 is_random_positive_sampling = False
 
 
