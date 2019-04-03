@@ -163,6 +163,8 @@ def check_if_test_done(pos_class, test_type, neg_class):
     return False
 
 def check_if_test_done_models(pos_class, test_type, neg_class, data_name, train_neg_pos_ratio, isPU, index, base, temp, sampling_model):
+    if Config.rerun_exp:
+        return False
     if isPU:
         rows = PUstats.objects.filter(pos_class = pos_class, neg_class = neg_class, data_name= data_name, train_neg_pos_ratio = train_neg_pos_ratio, test_type = test_type, experiment_number=index, baseline=base, temperature=temp, sampling_model=sampling_model)
     else:

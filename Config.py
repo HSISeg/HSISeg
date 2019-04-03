@@ -28,6 +28,7 @@ model = 'bass_net'
 gamma = 1.
 beta = 0.
 stepsize = 1e-3
+rerun_exp = False
 out = 'mldata/'
 output_layer_activation = 'sigmoid'
 epsilon = 10**-4
@@ -57,7 +58,7 @@ baseline_test_list =  [18]
 # percentage of pixels from total pixels of negative class (include_class_list - positive_class) that will be included in training
 # type_1_train_neg_percentage = 30 # not required
 
-type_1_neg_pos_ratio_in_train = [1, 0.82, 0.67, 0.54, 0.43, 0.33, 0.25, 0.18]
+type_1_neg_pos_ratio_in_train = [6.69]
 # type_1_pos_neg_ratio_in_train = [0.33]
 # type_1_pos_neg_ratio_in_train = [1]
 type_1_cross_pos_percentage = 7
