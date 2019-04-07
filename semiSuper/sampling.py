@@ -122,6 +122,8 @@ def connected_positive_sampling(n_train_pos_pixels, n_cross_pos_pixels, gt_label
 
 def get_pos_pixels(pos_class_list, gt_labelled_img, train_pos_percentage, cross_pos_percentage):
     pos_pixels = np.where(np.isin(gt_labelled_img, pos_class_list) == True)
+    indx = np.random.permutation(len(pos_pixels[0]))
+    pos_pixels = (pos_pixels[0][indx], pos_pixels[1][indx])
     is_random = Config.is_random_positive_sampling
     if len(pos_pixels[0]) == 0:
         raise ValueError("no positive pixels in the image.")
@@ -134,8 +136,7 @@ def get_pos_pixels(pos_class_list, gt_labelled_img, train_pos_percentage, cross_
     # n_train_pos_pixels = 200
     if n_train_pos_pixels == 0:
         raise ValueError("no positive pixels for training.")
-
-    indx = np.random.permutation(len(pos_pixels[0]))
+        
     if is_random:
         train_lp_pixels = (pos_pixels[0][indx[:n_train_pos_pixels]], pos_pixels[1][indx[:n_train_pos_pixels]])
         # cross validation
